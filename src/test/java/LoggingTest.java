@@ -1,12 +1,9 @@
 import org.junit.*;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-import org.hamcrest.core.Is;
-
-import org.frc4607.common.logging.Logger;
+import org.frc4607.common.logging.CISLogger;
 
 
 public class LoggingTest {
@@ -21,7 +18,7 @@ public class LoggingTest {
         for (char badChar : badNames.toCharArray()) {
             String badString = Character.toString(badChar);
             try {
-                Logger log = new Logger(badString, new String[]{"test"});
+                CISLogger log = new CISLogger(badString, new String[]{"test"});
                 fail("A Logger with the character " + badString + " was allowed to be created.");
             }
             catch (IllegalArgumentException e) {
@@ -36,7 +33,7 @@ public class LoggingTest {
     @Test
     public void testReservedName() {
         try {
-            Logger log = new Logger("Messages", new String[]{"test"});
+            CISLogger log = new CISLogger("Messages", new String[]{"test"});
             fail("Creating a logger named \"Messages\" should throw an error.");
         }
         catch (IllegalArgumentException e) {
@@ -49,17 +46,12 @@ public class LoggingTest {
      */
     @Test
     public void testEmptyLabels() {
-        // https://en.wikipedia.org/wiki/Filename#In_Windows
-        String badNames = "/\\?%*:|\"<>.,;= ";
-        for (char badChar : badNames.toCharArray()) {
-            String badString = Character.toString(badChar);
-            try {
-                Logger log = new Logger(badString, new String[]{});
-                log.logTelemetry(new Object[]{});
-            }
-            catch (IllegalStateException e) {
-                assertEquals(e.getMessage(), "Loggers created with no labels cannot send telemetry.");
-            }
+        try {
+            CISLogger log = new CISLogger("Test", new String[]{});
+            log.logTelemetry(new Object[]{});
+        }
+        catch (IllegalStateException e) {
+            assertEquals(e.getMessage(), "Loggers created with no labels cannot send telemetry.");
         }
     }
 
@@ -69,18 +61,18 @@ public class LoggingTest {
     @Test
     public void testInvalidDataSize() {
         try {
-            Logger log = new Logger("Test", new String[]{"a", "b", "c"});
+            CISLogger log = new CISLogger("Test", new String[]{"a", "b", "c"});
             log.logTelemetry(new Object[]{"a"});
         }
         catch (IllegalArgumentException e) {
-            assertEquals(e.getMessage(), "The number of objects passed to Logger.logTelemetry must be the same as the number of labels that were created.");
+            assertEquals(e.getMessage(), "The number of objects passed to Logger.logTelemetry() must be the same as the number of labels that were created.");
         }
         try {
-            Logger log = new Logger("Test", new String[]{"a", "b", "c"});
+            CISLogger log = new CISLogger("Test", new String[]{"a", "b", "c"});
             log.logTelemetry(new Object[]{"a", "b", "c", "d", "e"});
         }
         catch (IllegalArgumentException e) {
-            assertEquals(e.getMessage(), "The number of objects passed to Logger.logTelemetry must be the same as the number of labels that were created.");
+            assertEquals(e.getMessage(), "The number of objects passed to Logger.logTelemetry() must be the same as the number of labels that were created.");
         }
     }
 }

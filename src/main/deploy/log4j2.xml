@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>;
+<Configuration status="error">
+    <Properties>
+        <!--
+            This is the directory where log files will be saved.
+        -->
+        <Property name="logDir">/home/user/logs</Property>
+    </Properties>
+    <Appenders>
+        <!--
+            Append all logged data to a file. The date, time, and the filename are gotten from the thread context map.
+        -->
+        <File name="LogFile" fileName="${logDir}/${ctx:datetime}_${ctx:filename}.csv">
+            <!--
+                Disable formatting.
+            -->
+            <PatternLayout>
+                <Pattern>%ex{0}</Pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+    <Loggers>
+        <!--
+            Set up the logger to output to the file.
+        -->
+        <Logger name="CISLogger" level="info" additivity="false">
+            <AppenderRef ref="LogFile" />
+        </Logger>
+    </Loggers>
+</Configuration>
