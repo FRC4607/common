@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>;
+<Configuration status="error">
+    <Appenders>
+        <!--
+            Append all logged data to a file. The date, time, and the filename are gotten from the thread context map.
+        -->
+        <File name="LogFile" fileName="C:\Users\Majes\Documents\1337_HAX0R\common\${ctx:datetime}_${ctx:filename}.csv">
+            <!--
+                Disable formatting.
+            -->
+            <PatternLayout>
+                <Pattern>%ex{0}</Pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+    <Loggers>
+        <!--
+            Set up the logger to output to the file.
+        -->
+        <Logger name="CISLogger" level="info" additivity="false">
+            <AppenderRef ref="LogFile" />
+        </Logger>
+        <Logger name="TestLog" level="info" additivity="false">
+            <AppenderRef ref="LogFile" />
+        </Logger>
+    </Loggers>
+</Configuration>
