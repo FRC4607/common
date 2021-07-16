@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 import org.frc4607.common.logging.CISLogger;
-import org.frc4607.common.logging.LogTest;
+// import org.frc4607.common.logging.LogTest;
 
 public class LoggingTest {
 
