@@ -8,10 +8,10 @@
         <Routing name="LogFile">
             <Routes pattern="${ctx:filename}">
                 <Route>
-                    <RollingFile name="Logger-${ctx:filename}" fileName="${env:CSVDIR}/${ctx:datetime}_${ctx:filename}.csv" filePattern="${env:CSVDIR}/${ctx:datetime}_${ctx:filename}_%i.csv.gz"
+                    <RollingFile name="Logger-${ctx:filename}" fileName="/home/lvuser/logs/${ctx:datetime}_${ctx:filename}.csv" filePattern="/home/lvuser/logs/${ctx:datetime}_${ctx:filename}_%i.csv.gz"
                         append="true"
                         bufferedIO="true"
-                        immediateFlush="true">
+                        immediateFlush="false">
                         <SizeBasedTriggeringPolicy size="5MB" />
                     </RollingFile>
                 </Route>

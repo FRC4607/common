@@ -1,47 +1,89 @@
 import org.junit.*;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.frc4607.common.logging.CISLogger;
+
 // import org.frc4607.common.logging.LogTest;
 
 public class LoggingTest {
-
     /**
-     * Compares the text in a file to the provided string.
+     * Zips two lists together.
      * 
-     * @param file The path to the file to get the text from.
-     * @param text The text to compare to.
-     * @return Returns true if the strings match.
+     * @param a A list.
+     * @param b Another list.
+     * @return The two lists zipped together.
      */
-    public boolean compareFile(String file, String text) {
-        try {
-            // https://stackoverflow.com/a/14169729
-            String str = new String(Files.readAllBytes(Paths.get(file)), StandardCharsets.UTF_8);
-
-            System.out.println(str);
-            System.out.println(text);
-
-            return str.equals(text);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+    // Based on https://stackoverflow.com/a/31964093
+    public static <A, B> List<Map.Entry<A, B>> zip(List<A> a, List<B> b) {
+        List<Map.Entry<A, B>> out = new ArrayList<Map.Entry<A, B>>();
+        for (int i = 0; i < Math.min(a.size(), b.size()); i++) {
+            out.add(Map.entry(a.get(i), b.get(i)));
         }
+        return out;
     }
 
-    /*
-     * @Test public void aaa() { LogTest.main(); }
+    /**
+     * Compares a CSV table with a refrence.
+     * 
+     * @param input  A CSVParser from a CSV file.
+     * @param target A List containing Lists of Strings corresponding to the cells
+     *               in the table.
+     * @return
+     * @throws IOException
      */
+    public static boolean compareTables(CSVParser input, List<List<String>> target) throws IOException {
+        List<Map.Entry<CSVRecord, List<String>>> rows = zip(input.getRecords(), target);
+        int line = 0;
+        for (Map.Entry<CSVRecord, List<String>> pair : rows) {
+            List<Map.Entry<String, String>> values = zip(pair.getKey().toList(), pair.getValue());
+            int entry = 0;
+            for (Map.Entry<String, String> pair2 : values) {
+                if (entry != 1) {
+                    if (!pair2.getKey().equals(pair2.getValue())) {
+                        System.out.println("On line " + line + " and entry " + entry);
+                        System.out.println("Expected: " + pair2.getValue());
+                        System.out.println("Got: " + pair2.getKey());
+                        return false;
+                    }
+                } else {
+                    if (!pair2.getValue().equals("Timestamp")) {
+                        LocalTime inputTime = LocalTime.parse(pair2.getKey());
+                        LocalTime targetTime = LocalTime.parse(pair2.getValue());
+                        if (!inputTime.isBefore(targetTime.plusSeconds(1))) {
+                            System.out.println("Expected: " + pair2.getValue() + " within 1 second");
+                            System.out.println("Got: " + pair2.getKey());
+                            return false;
+                        }
+                    } else {
+                        if (!pair2.getKey().equals("Timestamp")) {
+                            System.out.println("Expected: " + pair2.getValue());
+                            System.out.println("Got: " + pair2.getKey());
+                            return false;
+                        }
+                    }
+                }
+                entry++;
+            }
+        }
+        return true;
+    }
 
     /**
      * Tests if the logger will reject names with special characters.
@@ -57,9 +99,6 @@ public class LoggingTest {
                 fail("A Logger with the character " + badString + " was allowed to be created.");
             } catch (IllegalArgumentException e) {
                 assertEquals(e.getMessage(), "Logger names must be valid Windows filenames.");
-            } catch (IOException e) {
-                e.printStackTrace();
-                fail("An IOException was encountered.");
             }
         }
     }
@@ -74,9 +113,6 @@ public class LoggingTest {
             fail("Creating a logger named \"Messages\" should throw an error.");
         } catch (IllegalArgumentException e) {
             assertEquals(e.getMessage(), "You cannot name a logger \"Messages\".");
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("An IOException was encountered.");
         }
     }
 
@@ -91,9 +127,6 @@ public class LoggingTest {
             log.logTelemetry(new Object[] {});
         } catch (IllegalStateException e) {
             assertEquals(e.getMessage(), "Loggers created with no labels cannot send telemetry.");
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("An IOException was encountered.");
         }
     }
 
@@ -109,9 +142,6 @@ public class LoggingTest {
         } catch (IllegalArgumentException e) {
             assertEquals(e.getMessage(),
                     "The number of objects passed to Logger.logTelemetry() must be the same as the number of labels that were created.");
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("An IOException was encountered.");
         }
         try {
             CISLogger log = new CISLogger("Test", new String[] { "a", "b", "c" });
@@ -119,95 +149,106 @@ public class LoggingTest {
         } catch (IllegalArgumentException e) {
             assertEquals(e.getMessage(),
                     "The number of objects passed to Logger.logTelemetry() must be the same as the number of labels that were created.");
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("An IOException was encountered.");
         }
     }
 
     /**
      * Tests the logger's ability to write telemetry.
+     * 
+     * @throws IOException
+     * @throws FileNotFoundException
      */
     @Test
-    public void testTelemetry() {
-        try {
-            String csvdir = System.getenv("CSVDIR");
-            LocalDateTime now = LocalDateTime.now();
-            String filename = csvdir + "/" + now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + "_"
-                    + "TelemetryTest.csv";
-            String time = now.toLocalTime().truncatedTo(ChronoUnit.SECONDS).toString();
+    public void testTelemetry() throws FileNotFoundException, IOException {
+        String csvdir = System.getenv("CSVDIR");
+        LocalDateTime now = LocalDateTime.now();
+        String filename = csvdir + "/" + now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + "_"
+                + "TelemetryTest.csv";
+        String time = now.toLocalTime().truncatedTo(ChronoUnit.MILLIS).toString();
 
-            CISLogger log = new CISLogger("TelemetryTest", new String[] { "a", "b", "c" });
-            Object[] test1 = new Object[] { 1, 2, 3 };
-            Object[] test2 = new Object[] { "x", "y", "z" };
-            Object[] test3 = new Object[] { false, true, false };
-            Object[] test4 = new Object[] { 1, "y", false };
-            log.logTelemetry(test1);
-            log.logTelemetry(test2);
-            log.logTelemetry(test3);
-            log.logTelemetry(test4);
-            log.finishWriting();
+        CISLogger log = new CISLogger("TelemetryTest", new String[] { "a", "b", "c" });
+        Object[] test1 = new Object[] { 1, 2, 3 };
+        Object[] test2 = new Object[] { "x", "y", "z" };
+        Object[] test3 = new Object[] { false, true, false };
+        Object[] test4 = new Object[] { 1, "y", false };
+        log.logTelemetry(test1);
+        log.logTelemetry(test2);
+        log.logTelemetry(test3);
+        log.logTelemetry(test4);
 
-            String fileContent = "0,Timestamp,a,b,c\r\n" + "0," + time + ",1,2,3\r\n" + "0," + time + ",x,y,z\r\n"
-                    + "0," + time + ",false,true,false\r\n" + "0," + time + ",1,y,false\r\n";
-            assertTrue(compareFile(filename, fileContent));
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("An IOException was encountered.");
-        }
+        String[] result0 = new String[] { "0", "Timestamp", "a", "b", "c" };
+        String[] result1 = new String[] { "0", time, "1", "2", "3" };
+        String[] result2 = new String[] { "0", time, "x", "y", "z" };
+        String[] result3 = new String[] { "0", time, "false", "true", "false" };
+        String[] result4 = new String[] { "0", time, "1", "y", "false" };
+        List<List<String>> table = new ArrayList<List<String>>();
+        table.add(Arrays.asList(result0));
+        table.add(Arrays.asList(result1));
+        table.add(Arrays.asList(result2));
+        table.add(Arrays.asList(result3));
+        table.add(Arrays.asList(result4));
+
+        assertTrue(compareTables(CSVFormat.DEFAULT.parse(new FileReader(filename)), table));
     }
 
     /**
      * Tests the logger's ability to write messages.
+     * 
+     * @throws IOException
+     * @throws FileNotFoundException
      */
     @Test
-    public void testMessages() {
-        try {
-            String csvdir = System.getenv("CSVDIR");
-            LocalDateTime now = LocalDateTime.now();
-            String filename = csvdir + "/" + now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + "_"
-                    + "MessageTest.csv";
-            String time = now.toLocalTime().truncatedTo(ChronoUnit.SECONDS).toString();
+    public void testMessages() throws FileNotFoundException, IOException {
+        String csvdir = System.getenv("CSVDIR");
+        LocalDateTime now = LocalDateTime.now();
+        String filename = csvdir + "/" + now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + "_"
+                + "MessageTest.csv";
+        String time = now.toLocalTime().truncatedTo(ChronoUnit.MILLIS).toString();
 
-            CISLogger log = new CISLogger("MessageTest", new String[] {});
-            log.logMessage("Test Message 1");
-            log.logMessage("Test Message 2");
-            log.finishWriting();
+        CISLogger log = new CISLogger("MessageTest", new String[] {});
+        log.logMessage("Test Message 1");
+        log.logMessage("Test Message 2");
 
-            String fileContent = "1," + time + ",Test Message 1\r\n" + "1," + time + ",Test Message 2\r\n";
-            assertTrue(compareFile(filename, fileContent));
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("An IOException was encountered.");
-        }
+        String[] result0 = new String[] { "1", time, "Test Message 1" };
+        String[] result1 = new String[] { "1", time, "Test Message 2" };
+        List<List<String>> table = new ArrayList<List<String>>();
+        table.add(Arrays.asList(result0));
+        table.add(Arrays.asList(result1));
+
+        assertTrue(compareTables(CSVFormat.DEFAULT.parse(new FileReader(filename)), table));
     }
 
     /**
      * Tests the logger's ability to escape the characters " and ,.
+     * 
+     * @throws IOException
+     * @throws FileNotFoundException
      */
     @Test
-    public void testEscape() {
-        try {
-            String csvdir = System.getenv("CSVDIR");
-            LocalDateTime now = LocalDateTime.now();
-            String filename = csvdir + "/" + now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + "_"
-                    + "EscapeTest.csv";
-            String time = now.toLocalTime().truncatedTo(ChronoUnit.SECONDS).toString();
+    public void testEscape() throws FileNotFoundException, IOException {
+        String csvdir = System.getenv("CSVDIR");
+        LocalDateTime now = LocalDateTime.now();
+        String filename = csvdir + "/" + now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + "_"
+                + "EscapeTest.csv";
+        String time = now.toLocalTime().truncatedTo(ChronoUnit.MILLIS).toString();
 
-            CISLogger log = new CISLogger("EscapeTest", new String[] { "test", "te,st", "te\"st" });
-            log.logTelemetry(new Object[] { "test", "te,st", "te\"st" });
-            log.logMessage("This message contains a , and a \".");
-            log.logMessage("This message contains no special characters.");
-            log.finishWriting();
+        CISLogger log = new CISLogger("EscapeTest", new String[] { "test", "te,st", "te\"st" });
+        log.logTelemetry(new Object[] { "test", "te,st", "te\"st" });
+        log.logMessage("This message contains a , and a \".");
+        log.logMessage("This message contains no special characters.");
 
-            String fileContent = "0,Timestamp,test,\"te,st\",\"te\"\"st\"\r\n" + "0," + time
-                    + ",test,\"te,st\",\"te\"\"st\"\r\n" + "1," + time
-                    + ",\"This message contains a , and a \"\".\"\r\n" + "1," + time
-                    + ",This message contains no special characters.\r\n";
-            assertTrue(compareFile(filename, fileContent));
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("An IOException was encountered.");
-        }
+        // Commons CSV will automatically escape for us, so there's no need to put extra
+        // quote marks.
+        String[] result0 = new String[] { "0", "Timestamp", "test", "te,st", "te\"st" };
+        String[] result1 = new String[] { "0", time, "test", "te,st", "te\"st" };
+        String[] result2 = new String[] { "1", time, "This message contains a , and a \"." };
+        String[] result3 = new String[] { "1", time, "This message contains no special characters." };
+        List<List<String>> table = new ArrayList<List<String>>();
+        table.add(Arrays.asList(result0));
+        table.add(Arrays.asList(result1));
+        table.add(Arrays.asList(result2));
+        table.add(Arrays.asList(result3));
+
+        assertTrue(compareTables(CSVFormat.DEFAULT.parse(new FileReader(filename)), table));
     }
 }

@@ -1,25 +1,30 @@
 package org.frc4607.common.logging;
 
-import org.apache.logging.log4j.Logger;
-
-import org.apache.logging.log4j.CloseableThreadContext;
-import org.apache.logging.log4j.LogManager;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
-public class CISLogger {
+public class NIOLogger {
     // Store the logger's name and the size of its data.
     private String name;
-    private int dataSize;
     private String datetime;
+    private int dataSize;
 
-    // Store the instance of the Log4J2 logger.
-    private Logger log;
+    // Store a refrence to our file.
+    private AsynchronousFileChannel file;
+    private int cursor = 0;
+    private Future future = null;
 
     /**
      * Creates a new CISLogger. You must wait for CISLogger.isReady() to be true
@@ -35,8 +40,14 @@ public class CISLogger {
      *                                  station.
      * @throws IllegalArgumentException An IllegalArgumentException will be thrown
      *                                  if an invalid name is picked for the logger.
+     * @throws IOException              An IOException will be thrown if the log
+     *                                  file is unable to be opened.
+     * 
+     * @deprecated This logger uses java.nio and is not stable enough for
+     *             competition use. Please use
+     *             {@link CISLogger#CISLogger(String, String[]) CISLogger} instead.
      */
-    public CISLogger(String name, String[] labels) {
+    public NIOLogger(String name, String[] labels) throws IOException {
         if (!isReady()) {
             throw new IllegalStateException("Loggers cannot be created before CISLogger.ready() returns true.");
         }
@@ -53,7 +64,7 @@ public class CISLogger {
         this.name = name;
         dataSize = labels.length;
         datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
-        log = LogManager.getLogger("CISLogger");
+        file = openFile();
         if (dataSize > 0) {
             logLabels(labels);
         }
@@ -95,6 +106,20 @@ public class CISLogger {
      */
     public void logMessage(String message) {
         logInternal("1," + LocalTime.now().truncatedTo(ChronoUnit.MILLIS).toString() + "," + csvEscape(message));
+    }
+
+    /**
+     * Finishes waiting for the most recent write to the log file to complete or
+     * error out. Will complete instantly if no writing has been done.
+     */
+    public void finishWriting() {
+        if (future != null) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -143,14 +168,37 @@ public class CISLogger {
     }
 
     /**
+     * Opens the log file.
+     * 
+     * @return Returns the log file as an AsynchronousFileChannel.
+     * @throws IOException An IOException will be thrown if the file cannot be
+     *                     opened.
+     */
+    private AsynchronousFileChannel openFile() throws IOException {
+        Path path;
+        String csvdir = System.getenv("CSVDIR");
+        if (csvdir == null) {
+            path = Paths.get("/home/lvuser/logs/" + datetime + "_" + name + ".csv");
+        } else {
+            path = Paths.get(csvdir + "/" + datetime + "_" + name + ".csv");
+        }
+        return AsynchronousFileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+    }
+
+    /**
      * Writes a string to the file.
      * 
      * @param msg The string to write.
      */
     private void logInternal(String msg) {
-        try (final CloseableThreadContext.Instance ctc = CloseableThreadContext
-                .putAll(Map.of("filename", name, "datetime", datetime))) {
-            log.info(msg);
-        }
+        // https://www.baeldung.com/java-nio2-async-file-channel
+        int length = msg.length() + 2;
+        ByteBuffer buffer = ByteBuffer.allocate(length);
+        buffer.put((msg + "\r\n").getBytes());
+        buffer.flip();
+
+        // No need to do anything else, since we want writes to run in the background.
+        future = file.write(buffer, cursor);
+        cursor += length;
     }
 }
