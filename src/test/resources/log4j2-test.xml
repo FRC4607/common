@@ -6,16 +6,15 @@
             Based on this StackOverflow answer: https://stackoverflow.com/a/25125159
         -->
         <Routing name="LogFile">
-            <Routes pattern="${ctx:filename}">
+            <Routes pattern="$${ctx:filename}">
+                <Route key="$${ctx:filename}"></Route>
                 <Route>
-                    <RollingFile name="Logger-${ctx:filename}" fileName="${env:CSVDIR}/${ctx:datetime}_${ctx:filename}.csv" filePattern="${env:CSVDIR}/${ctx:datetime}_${ctx:filename}_%i.csv.gz"
+                    <RollingRandomAccessFile name="Logger-${ctx:filename}" fileName="${env:CSVDIR}/${ctx:filename}.csv" filePattern="${env:CSVDIR}/${ctx:filename}_%i.csv.gz"
                         append="true"
-                        bufferedIO="true"
-                        immediateFlush="true">
+                        immediateFlush="false">
                         <SizeBasedTriggeringPolicy size="5MB" />
-                    </RollingFile>
+                    </RollingRandomAccessFile>
                 </Route>
-                <Route key="${ctx:filename}"></Route>
             </Routes>
         </Routing>
     </Appenders>
@@ -23,8 +22,8 @@
         <!--
             Set up the logger to output to the file.
         -->
-        <Logger name="CISLogger" level="info" additivity="false">
+        <AsyncLogger name="CISLogger" level="info" additivity="false">
             <AppenderRef ref="LogFile" />
-        </Logger>
+        </AsyncLogger>
     </Loggers>
 </Configuration>

@@ -2,15 +2,14 @@
 <Configuration status="error">
     <Appenders>
         <!--
-            Append all logged data to a file. The date, time, and the filename are gotten from the thread context map.
+            Append all logged data to a file. The filename is gotten from the thread context map.
             Based on this StackOverflow answer: https://stackoverflow.com/a/25125159
         -->
         <Routing name="LogFile">
             <Routes pattern="${ctx:filename}">
                 <Route>
-                    <RollingFile name="Logger-${ctx:filename}" fileName="/home/lvuser/logs/${ctx:datetime}_${ctx:filename}.csv" filePattern="/home/lvuser/logs/${ctx:datetime}_${ctx:filename}_%i.csv.gz"
+                    <RollingRandomAccessFile name="${ctx:filename}" fileName="/home/lvuser/logs/${ctx:filename}.csv" filePattern="/home/lvuser/logs/${ctx:filename}_%i.csv.gz"
                         append="true"
-                        bufferedIO="true"
                         immediateFlush="false">
                         <SizeBasedTriggeringPolicy size="5MB" />
                     </RollingFile>
@@ -23,8 +22,37 @@
         <!--
             Set up the logger to output to the file.
         -->
-        <Logger name="CISLogger" level="info" additivity="false">
+        <AsyncLogger name="CISLogger" level="info" additivity="false">
             <AppenderRef ref="LogFile" />
         </Logger>
+    </Loggers>
+</Configuration>
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="error">
+    <Appenders>
+        <!--
+            Append all logged data to a file. The date, time, and the filename are gotten from the thread context map.
+            Based on this StackOverflow answer: https://stackoverflow.com/a/25125159
+        -->
+        <Routing name="LogFile">
+            <Routes pattern="$${ctx:filename}">
+                <Route key="$${ctx:filename}"></Route>
+                <Route>
+                    <RollingRandomAccessFile name="Logger-${ctx:filename}" fileName="/home/lvuser/logs/${ctx:filename}.csv" filePattern="/home/lvuser/logs/${ctx:filename}_%i.csv.gz"
+                        append="true"
+                        immediateFlush="false">
+                        <SizeBasedTriggeringPolicy size="5MB" />
+                    </RollingRandomAccessFile>
+                </Route>
+            </Routes>
+        </Routing>
+    </Appenders>
+    <Loggers>
+        <!--
+            Set up the logger to output to the file.
+        -->
+        <AsyncLogger name="CISLogger" level="info" additivity="false">
+            <AppenderRef ref="LogFile" />
+        </AsyncLogger>
     </Loggers>
 </Configuration>

@@ -36,6 +36,10 @@ dependencies {
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.14.1'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
 
+    // Add LMAX Disruptor, to enable async in Log4J2
+    implementation 'com.lmax:disruptor:3.4.4'
+
+
     // Add CommonsCSV for testing of log files.
     compile 'org.apache.commons:commons-csv:1.9.0'
 }
