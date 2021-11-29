@@ -18,27 +18,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import org.frc4607.common.util.Zip;
 import org.frc4607.common.logging.CISLogger;
 
 // import org.frc4607.common.logging.LogTest;
 
 public class LoggingTest {
-    /**
-     * Zips two lists together.
-     * 
-     * @param a A list.
-     * @param b Another list.
-     * @return The two lists zipped together.
-     */
-    // Based on https://stackoverflow.com/a/31964093
-    public static <A, B> List<Map.Entry<A, B>> zip(List<A> a, List<B> b) {
-        List<Map.Entry<A, B>> out = new ArrayList<Map.Entry<A, B>>();
-        for (int i = 0; i < Math.min(a.size(), b.size()); i++) {
-            out.add(Map.entry(a.get(i), b.get(i)));
-        }
-        return out;
-    }
-
     /**
      * Compares a CSV table with a refrence.
      * 
@@ -49,10 +35,10 @@ public class LoggingTest {
      * @throws IOException
      */
     public static boolean compareTables(CSVParser input, List<List<String>> target) throws IOException {
-        List<Map.Entry<CSVRecord, List<String>>> rows = zip(input.getRecords(), target);
+        List<Map.Entry<CSVRecord, List<String>>> rows = Zip.zip(input.getRecords(), target);
         int line = 0;
         for (Map.Entry<CSVRecord, List<String>> pair : rows) {
-            List<Map.Entry<String, String>> values = zip(pair.getKey().toList(), pair.getValue());
+            List<Map.Entry<String, String>> values = Zip.zip(pair.getKey().toList(), pair.getValue());
             int entry = 0;
             for (Map.Entry<String, String> pair2 : values) {
                 if (entry != 1) {
