@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.RobotController;
 
 import org.apache.logging.log4j.LogManager;
 
+@Deprecated
 public class CISLogger {
     public class SubLogger {
         // Store the logger's name and the size of its data.
@@ -112,8 +113,9 @@ public class CISLogger {
     private Logger log;
 
     /**
-     * Creates a new CISLogger. It is not recommended to create more than one
-     * instance of this class, as the filename of the instance created most recently
+     * Creates a new CISLogger.
+     * 
+     * @deprecated Use {@link edu.wpi.first.wpilibj.DataLogManager} instead.
      * 
      * @param filename The filename of the log.
      * @param labels   The labels for the telemetry data. Can be empty, in which

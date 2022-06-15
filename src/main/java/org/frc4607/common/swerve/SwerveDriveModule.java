@@ -1,45 +1,46 @@
 package org.frc4607.common.swerve;
 
-import com.revrobotics.AlternateEncoderType;
-import com.revrobotics.CANEncoder;
-import com.revrobotics.CANPIDController;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.ControlType;
-
-import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public class SwerveDriveModule {
-    private final CANSparkMax mDriveMotor;
-    private final CANSparkMax mTurnMotor;
+    private final SwerveMotorBase mDriveMotor;
+    private final SwerveMotorBase mTurnMotor;
+    private final Translation2d mModuleLocation;
 
-    private final CANEncoder mDriveEncoder;
-    private final CANEncoder mTurnEncoder;
-
-    private final CANPIDController mDrivePID;
-    private final CANPIDController mTurnPID;
-    
-    public SwerveDriveModule(CANSparkMax drive, CANSparkMax turn) {
+    public SwerveDriveModule(SwerveMotorBase drive, SwerveMotorBase turn, Translation2d moduleLocation) {
         mDriveMotor = drive;
         mTurnMotor = turn;
-
-        mDriveEncoder = mDriveMotor.getEncoder();
-        // https://www.revrobotics.com/rev-11-1271/
-        mTurnEncoder = mTurnMotor.getAlternateEncoder(AlternateEncoderType.kQuadrature, 8192);
-
-        mDrivePID = mDriveMotor.getPIDController();
-        mDrivePID.setFeedbackDevice(mDriveEncoder);
-        mTurnPID = mTurnMotor.getPIDController();
-        mTurnPID.setFeedbackDevice(mTurnEncoder);
+        mModuleLocation = moduleLocation;
     }
 
     public void set(SwerveModuleState state) {
-        // Remember, Rotation2d is CCW positive, so make sure to negate angles to and from it.
-        SwerveModuleState newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(-mTurnEncoder.getPosition()));
-        //mDrivePID.setReference(newState.speedMetersPerSecond, ControlType.kVelocity);
-        // Approximation, assuming linear motor with full power going 12 m/s.
-        // https://www.swervedrivespecialties.com/products/mk3-swerve-module?variant=39420433203313
-        mDriveMotor.set(Math.min(1, state.speedMetersPerSecond / 12));
-        mTurnPID.setReference(-newState.angle.getDegrees(), ControlType.kPosition);
+        SwerveModuleState newState = SwerveModuleState.optimize(state, mTurnMotor.getRotation2d());
+        mDriveMotor.setTarget(newState.speedMetersPerSecond);
+        mTurnMotor.setTarget(newState.angle.getDegrees());
+    }
+
+    public double getDriveMotorPosition() {
+        return mDriveMotor.getEncoderPosition();
+    }
+    public double getDriveMotorVelocity() {
+        return mDriveMotor.getEncoderVelocity();
+    }
+    public double getTurnMotorPosition() {
+        return mTurnMotor.getEncoderPosition();
+    }
+    public double getTurnMotorVelocity() {
+        return mTurnMotor.getEncoderVelocity();
+    }
+
+    public Translation2d getModuleLocation() {
+        return mModuleLocation;
+    }
+
+    public boolean isDriveMotorConnected() {
+        return mDriveMotor.isConnected();
+    }
+    public boolean isTurnMotorConnected() {
+        return mTurnMotor.isConnected();
     }
 }

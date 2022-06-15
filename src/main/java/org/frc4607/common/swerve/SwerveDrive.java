@@ -1,67 +1,62 @@
 package org.frc4607.common.swerve;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import com.revrobotics.CANSparkMax;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.frc4607.common.util.Zip;
 
-import edu.wpi.first.wpilibj.geometry.Translation2d;
-import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public class SwerveDrive {
 
-    public class ModuleInfo {
-        public SwerveDriveModule mModule;
-        public Translation2d mLocation;
+    private static final Translation2d mCenter = new Translation2d(0, 0);
 
-        public ModuleInfo(CANSparkMax drive, CANSparkMax turn, Translation2d location) {
-            mModule = new SwerveDriveModule(drive, turn);
-            mLocation = location;
-        }
-    }
-
-    private final int mModuleGracePeriod;
-    private List<Integer> mModuleErrorCount;
-
-    private List<ModuleInfo> mActiveModules;
+    private List<SwerveDriveModule> mActiveModules;
     private SwerveDriveKinematics mKinematics;
 
 
-    public SwerveDrive(int gracePeriod, ModuleInfo... modules) {
+    public SwerveDrive(SwerveDriveModule... modules) {
         mActiveModules = List.of(modules);
-        mModuleGracePeriod = gracePeriod;
-        mModuleErrorCount = new ArrayList<Integer>() {};
+        mKinematics = reconstructKinematics(mActiveModules.stream());
+    }
 
-        List<Translation2d> translation2ds = new ArrayList<Translation2d>();
-        for (ModuleInfo moduleInfo : mActiveModules) {
-            translation2ds.add(moduleInfo.mLocation);
-        }
+    public void update(ChassisSpeeds speeds, Translation2d centerRotation) {
+        List<SwerveDriveModule> validModules = validate(mActiveModules);
 
-        mKinematics = new SwerveDriveKinematics((Translation2d[]) translation2ds.toArray());
+        SwerveModuleState[] states = mKinematics.toSwerveModuleStates(speeds, centerRotation);
+
+        Zip.zip(validModules, List.of(states)).stream().forEach((pair) -> {
+            pair.getKey().set(pair.getValue());
+        });
     }
 
     public void update(ChassisSpeeds speeds) {
-        SwerveModuleState[] states = mKinematics.toSwerveModuleStates(speeds);
-
-        List<Map.Entry<ModuleInfo, SwerveModuleState>> validStates = validate(Zip.zip(mActiveModules, List.of(states)));
-
-        for (Map.Entry<ModuleInfo, SwerveModuleState> pair : validStates ) {
-            pair.getKey().mModule.set(pair.getValue());
-        }
+        update(speeds, mCenter);
     }
 
-    private List<Map.Entry<ModuleInfo, SwerveModuleState>> validate(List<Map.Entry<ModuleInfo, SwerveModuleState>> targetStates) {
-        /* for (Map.Entry<ModuleInfo, SwerveModuleState> pair : targetStates ) {
-            ModuleInfo module = pair.getKey();
-            SwerveModuleState state = pair.getValue();
+    private List<SwerveDriveModule> validate(List<SwerveDriveModule> modules) {
+        // Based on https://stackoverflow.com/a/14832470
+        Stream<SwerveDriveModule> validModules = modules.stream()
+            .filter((module) -> {
+                return module.isDriveMotorConnected() && module.isTurnMotorConnected();
+            });
+        if (validModules.count() < modules.size()) {
+            mKinematics = reconstructKinematics(validModules);
+        }
+        return validModules.collect(Collectors.toList());
+    }
 
+    private SwerveDriveKinematics reconstructKinematics(Stream<SwerveDriveModule> modules) {
+        Translation2d[] positions = (Translation2d[]) modules
+            .map((module) -> {
+                return module.getModuleLocation();
+            })
+            .toArray();
 
-        }*/
-        return targetStates;
+        return new SwerveDriveKinematics(positions);
     }
 }
