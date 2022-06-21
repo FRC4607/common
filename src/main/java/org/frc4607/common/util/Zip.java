@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A static method designed to take two lists {@code a} and {@code b} and create a resulting list of
+ * {@code [[a[0], b[0]], [a[1], b[1]], ..., [a[-1], b[-1]]]}.
+ */
 public class Zip {
     /**
      * Zips two lists together.
-     * 
+     *
      * @param a A list.
      * @param b Another list.
      * @return The two lists zipped together.

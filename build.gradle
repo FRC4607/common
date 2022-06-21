@@ -78,9 +78,36 @@ dependencies {
     // Add LMAX Disruptor, to enable async in Log4J2
     implementation 'com.lmax:disruptor:3.4.4'
 
-
     // Add CommonsCSV for testing of log files.
     implementation 'org.apache.commons:commons-csv:1.9.0'
+
+    errorprone("com.google.errorprone:error_prone_core:2.14.0")
+}
+
+spotbugsMain {
+    excludeFilter = file("config/spotbugsexclude.xml")
+    reports {
+        html {
+            required = true
+            outputLocation = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
+    }
+}
+
+pmd {
+    consoleOutput = true
+    toolVersion = "6.46.0"
+    rulesMinimumPriority = 5
+    ruleSetFiles = files("config/pmdruleset.xml")
+    ruleSets = [] // This needs to be here otherwise the custom ruleset doesn't work.
+}
+
+checkstyle {
+    toolVersion = '10.3'
+    ignoreFailures = false
+    maxWarnings = 0
+    config = resources.text.fromUri("https://raw.githubusercontent.com/FRC4607/common/main/google_checks.xml")
 }
 
 // Simulation configuration (e.g. environment variables).
