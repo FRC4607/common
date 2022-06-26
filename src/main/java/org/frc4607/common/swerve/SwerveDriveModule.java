@@ -10,6 +10,8 @@ public class SwerveDriveModule {
     private final SwerveMotorBase m_driveMotor;
     private final SwerveMotorBase m_turnMotor;
     private final Translation2d m_moduleLocation;
+    private double m_lastDriveVelocity;
+    private double m_lastTurnVelocity;
 
     /**
      * Constructs a new instance of {@code SwerveDriveModule}.
@@ -58,11 +60,9 @@ public class SwerveDriveModule {
         return m_turnMotor.getEncoderVelocity();
     }
 
-
     public Translation2d getModuleLocation() {
         return m_moduleLocation;
     }
-
 
     public boolean isDriveMotorConnected() {
         return m_driveMotor.isConnected();
