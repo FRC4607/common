@@ -1,5 +1,6 @@
 package org.frc4607.common.swerve;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -14,8 +15,9 @@ import org.frc4607.common.util.Zip;
  * information about the state of the swerve drive.
  */
 public class SwerveDrive {
-
     private static final Translation2d mCenter = new Translation2d(0, 0);
+
+    private final double m_maxWheelVelocity;
 
     private List<SwerveDriveModule> m_activeModules;
     private SwerveDriveKinematics m_kinematics;
@@ -23,11 +25,14 @@ public class SwerveDrive {
     /**
      * Constructs a new {@code SwerveDrive}.
      *
+     * @param maxWheelVelocity The maximum wheel velocity of the slowest wheel in the swerve drive
+     in meters per second.
      * @param modules A list of {@link org.frc4607.common.swerve.SwerveDriveModule} objects.
      */
-    public SwerveDrive(SwerveDriveModule... modules) {
+    public SwerveDrive(double maxWheelVelocity, SwerveDriveModule... modules) {
         m_activeModules = List.of(modules);
         m_kinematics = reconstructKinematics(m_activeModules.stream());
+        m_maxWheelVelocity = maxWheelVelocity;
     }
 
     /**
@@ -43,9 +48,14 @@ public class SwerveDrive {
 
         SwerveModuleState[] states = 
             m_kinematics.toSwerveModuleStates(speeds, centerRotationMeters);
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, m_maxWheelVelocity);
 
         Zip.zip(validModules, List.of(states)).stream().forEach((pair) -> {
-            pair.getKey().set(pair.getValue());
+            SwerveDriveModule module = pair.getKey();
+            SwerveModuleState state = pair.getValue();
+            state = SwerveModuleState.optimize(state,
+                Rotation2d.fromDegrees(module.getTurnMotorPosition()));
+            module.set(state);
         });
     }
 

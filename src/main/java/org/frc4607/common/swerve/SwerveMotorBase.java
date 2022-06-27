@@ -76,6 +76,40 @@ public abstract class SwerveMotorBase {
 
     /**
      * Passthrough of {@link edu.wpi.first.math.controller.SimpleMotorFeedforward}'s
+     * {@code maxAchievableAcceleration} method.
+     *
+     * @param velocity The desired velocity in meters per second.
+     * @return The voltage to apply to achieve the desired velocity.
+     */
+    public double getMaxAcceleration(double velocity) {
+        return m_config.m_feedforward.maxAchievableAcceleration(m_config.m_maxVoltage, velocity);
+    }
+
+    /**
+     * Passthrough of {@link edu.wpi.first.math.controller.SimpleMotorFeedforward}'s
+     * {@code calculate} method.
+     *
+     * @param velocity The desired velocity in meters per second.
+     * @return The voltage to apply to achieve the desired velocity.
+     */
+    public double calculateFeedforward(double velocity) {
+        return m_config.m_feedforward.calculate(velocity);
+    }
+
+    /**
+     * Passthrough of {@link edu.wpi.first.math.controller.SimpleMotorFeedforward}'s
+     * {@code calculate} method.
+     *
+     * @param velocity The desired velocity in meters per second.
+     * @param acceleration The desired acceleration in meters per second squared.
+     * @return The voltage to apply to achieve the desired velocity.
+     */
+    public double calculateFeedforward(double velocity, double acceleration) {
+        return m_config.m_feedforward.calculate(velocity, acceleration);
+    }
+
+    /**
+     * Passthrough of {@link edu.wpi.first.math.controller.SimpleMotorFeedforward}'s
      * {@code calculate} method.
      *
      * @param current The current velocity.
@@ -87,14 +121,14 @@ public abstract class SwerveMotorBase {
         return m_config.m_feedforward.calculate(current, next, dt);
     }
 
-    public double get
-
     /**
-     * Commands the motor to a velocity setpoint.
+     * Commands the motor to either a velocity setpoint or position setpoint with a feedforward.
      *
-     * @param value The velocity to command the motor to in meters per second.
+     * @param value Either the velocity to command the motor to in meters per second or the position
+     to command the motor to in CCW positive degrees.
+     * @param ffVolts The feedforward to apply to the motor in volts.
      */
-    public abstract void setTarget(double value);
+    public abstract void setTarget(double value, double ffVolts);
 
     /**
      * Checks if the motor is connected.

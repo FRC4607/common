@@ -16,6 +16,9 @@ public class SwerveDriverConfig {
     /** The CAN ID of the motor the driver is representing. */
     public int m_id;
 
+    /** The maximum voltage that can be applied to the motor. */
+    public double m_maxVoltage;
+
     /** The value to multiply the native position units by to convert them to CCW positive
      * degrees in the case of the turning motor, or meters in the case of the drive motor.
      */
