@@ -70,6 +70,7 @@ public class SwerveDriveModule {
         m_turnMotor.setTarget(state.angle.getDegrees(), turnFeedforward);
         m_driveMotor.setTarget(state.speedMetersPerSecond, driveFeedforward);
 
+        m_lastDriveVelocity = currentVelocity;
     }
 
 
