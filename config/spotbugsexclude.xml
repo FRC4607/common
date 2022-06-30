@@ -2,4 +2,14 @@
     <Match>
         <Bug pattern="EI_EXPOSE_REP, EI_EXPOSE_REP2" />
     </Match>
+    
+    <!-- These are template classes that don't have their fields set in the library, so they are exempt from having unused and unread fields. -->
+    <Match>
+        <Class name="org.frc4607.common.swerve.SwerveMotorBase" />
+        <Bug code="UuF,UrF" />
+    </Match>
+    <Match>
+        <Class name="org.frc4607.common.swerve.SwerveDriverConfig" />
+        <Bug code="UuF,UrF" />
+    </Match>
 </FindBugsFilter>

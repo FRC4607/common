@@ -12,7 +12,7 @@ public class SwerveDriveModule {
     private final SwerveMotorBase m_turnMotor;
     private final Translation2d m_moduleLocation;
     private final TrapezoidProfile.Constraints m_turnConstraints;
-    private double m_lastDriveVelocity = 0;
+    private double m_lastDriveVelocity;
 
     /**
      * Constructs a new instance of {@code SwerveDriveModule}.
