@@ -4,7 +4,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
 /**
  * Contains the configuration settings for objects inheriting from
- * {@link org.frc4607.common.swerve.SwerveMotorBase}.
+ {@link org.frc4607.common.swerve.SwerveMotorBase}.
  */
 public class SwerveDriverConfig {
     /** Determines what kind of motor the driver is representing. */
@@ -20,12 +20,12 @@ public class SwerveDriverConfig {
     public double m_maxVoltage;
 
     /** The value to multiply the native position units by to convert them to CCW positive
-     * degrees in the case of the turning motor, or meters in the case of the drive motor.
+     degrees in the case of the turning motor, or meters in the case of the drive motor.
      */
     public double m_positionCoefficient;
 
-    /** The value to multiply the native position units by to convert them to meters per
-     * second for the drive motor, and CCW positive degrees per second for the turning motor.
+    /** The value to multiply the native velocity units by to convert them to meters per
+     second for the drive motor, and CCW positive degrees per second for the turning motor.
      */
     public double m_velocityCoefficient;
 
@@ -36,24 +36,27 @@ public class SwerveDriverConfig {
     public MotorType m_motorType;
 
     /** The P term of the hardware PID controller of the motor for velocity control.
-     * Unit will depend on motor type. */
+     Unit will depend on motor type.
+     */
     public double m_kp;
 
     /** The I term of the hardware PID controller of the motor for velocity control.
-     * Unit will depend on motor type. */
+     Unit will depend on motor type.
+     */
     public double m_ki;
 
     /** The D term of the hardware PID controller of the motor for velocity control.
-     * Unit will depend on motor type. */
+     Unit will depend on motor type.
+     */
     public double m_kd;
 
     /** The IZone term of the hardware PID controller of the motor for velocity control.
-     * Unit will depend on motor type.
+     Unit will depend on motor type.
      */
     public double m_kiZone;
 
     /** The maximum integral value of the harddware PID controller for velocity control.
-     * Unit will depend on motor type.
+     Unit will depend on motor type.
      */
     public double m_maxI;
 
@@ -70,12 +73,15 @@ public class SwerveDriverConfig {
     public int m_pwmChannel;
 
     /** TURNING ONLY: The value to multiply the native position units of the external
-     * encoder by to convert them to CCW positive degrees.
+     encoder by to convert them to CCW positive degrees.
      */
     public double m_turnPositionCoefficientt;
 
     /** TURNING ONLY: The absolute value of the external encoder in CCW positive degrees when
-     * the wheel of the module is facing towards positve X in the robot coordinate system. */
+     the wheel of the module is facing towards positve X in the robot coordinate system so that
+     if all modules were facing in this direction then applying the same postive voltage to every
+     drive motor would cause the robot to move in the positive X direction.
+     */
     public double m_wheelOffset;
 
     /** TURNING ONLY: Whether or not to invert the external encoder. */

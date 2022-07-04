@@ -35,23 +35,29 @@ public abstract class SwerveMotorBase {
     }
 
     /**
-     * Returns the CCW-positive angle of either the drive or turn motor.
+     * Gets the CCW positive angle of the extermal encoder in degrees if this is a turning motor
+     or gets the distance traveled by the wheel in meters if this is a drive motor.
      *
-     * @return Returns the CCW-positive angle of either the drive or turn motor in degrees.
+     * @return The position of the motor in either CCW positive degrees or meters depending on
+     motor type.
      */
     public abstract double getEncoderPosition();
 
     /**
-     * Returns the velocity of either the drive or turn motor.
+     * Returns the velocity of the motor in CCW positive degrees per second if this is a turning
+     motor or in meters per second if it is a drive motor.
      *
-     * @return Returns the velocity of either the drive or turn motor in meters/second.
+     * @return The position of the motor in either CCW positive degrees per second or meters
+     per second depending on motor type.
      */
     public abstract double getEncoderVelocity();
 
     /**
-     * Sets the CCW-positive angle of either the drive or turn motor.
+     * Sets the CCW-positive angle of the encoder if this a turning motor or the encoder position in
+     meters if this is a drive motor.
      *
-     * @param value The CCW-positive angle of either the drive or turn motor.
+     * @param value The position to set the encoder to in either CCW positive degrees or meters 
+     depending on motor type.
      */
     public abstract void setEncoder(double value);
 
@@ -69,13 +75,13 @@ public abstract class SwerveMotorBase {
      *
      * @param value The CCW-positive angle of either the drive or turn motor as a Rotation2d.
      */
-    public void getRotation2d(Rotation2d value) {
+    public void setRotation2d(Rotation2d value) {
         setEncoder(value.getDegrees());
     }
 
     /**
      * Passthrough of {@link edu.wpi.first.math.controller.SimpleMotorFeedforward}'s
-     * {@code maxAchievableAcceleration} method.
+     {@code maxAchievableAcceleration} method.
      *
      * @param velocity The desired velocity in meters per second.
      * @return The voltage to apply to achieve the desired velocity.
@@ -86,7 +92,7 @@ public abstract class SwerveMotorBase {
 
     /**
      * Passthrough of {@link edu.wpi.first.math.controller.SimpleMotorFeedforward}'s
-     * {@code calculate} method.
+     {@code calculate} method.
      *
      * @param velocity The desired velocity in meters per second.
      * @return The voltage to apply to achieve the desired velocity.
@@ -97,7 +103,7 @@ public abstract class SwerveMotorBase {
 
     /**
      * Passthrough of {@link edu.wpi.first.math.controller.SimpleMotorFeedforward}'s
-     * {@code calculate} method.
+     {@code calculate} method.
      *
      * @param velocity The desired velocity in meters per second.
      * @param acceleration The desired acceleration in meters per second squared.
@@ -109,12 +115,12 @@ public abstract class SwerveMotorBase {
 
     /**
      * Passthrough of {@link edu.wpi.first.math.controller.SimpleMotorFeedforward}'s
-     * {@code calculate} method.
+     {@code calculate} method.
      *
      * @param current The current velocity.
      * @param next The next desired velocity.
      * @param dt The time in seconds between current and next.
-     * @return The voltage to apply to achieve the next velocity.
+     * @return The voltage to apply to achieve the next velocity in the desired time.
      */
     public double calculateFeedforward(double current, double next, double dt) {
         return m_config.m_feedforward.calculate(current, next, dt);
