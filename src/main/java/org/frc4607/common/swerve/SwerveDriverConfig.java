@@ -75,7 +75,7 @@ public class SwerveDriverConfig {
     /** TURNING ONLY: The value to multiply the native position units of the external
      encoder by to convert them to CCW positive degrees.
      */
-    public double m_turnPositionCoefficientt;
+    public double m_turnPositionCoefficient;
 
     /** TURNING ONLY: The absolute value of the external encoder in CCW positive degrees when
      the wheel of the module is facing towards positve X in the robot coordinate system so that

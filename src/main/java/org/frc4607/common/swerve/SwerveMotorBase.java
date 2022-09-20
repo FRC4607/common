@@ -22,7 +22,7 @@ public abstract class SwerveMotorBase {
     public SwerveMotorBase(SwerveDriverConfig config) {
         m_config = config;
 
-        if (m_config.m_motorType == SwerveDriverConfig.MotorType.DRIVE) {
+        if (m_config.m_motorType == SwerveDriverConfig.MotorType.TURNING) {
             try (DutyCycleEncoder pwm = new DutyCycleEncoder(m_config.m_pwmChannel)) {
                 m_offset = pwm.getAbsolutePosition() - m_config.m_wheelOffset;
             }
@@ -30,7 +30,7 @@ public abstract class SwerveMotorBase {
             m_quadEncoder
                 = new Encoder(m_config.m_quadChannelA, m_config.m_quadChannelB,
                 m_config.m_turningInvert, EncodingType.k4X);
-            m_quadEncoder.setDistancePerPulse(m_config.m_turnPositionCoefficientt);
+            m_quadEncoder.setDistancePerPulse(m_config.m_turnPositionCoefficient);
         }
     }
 
