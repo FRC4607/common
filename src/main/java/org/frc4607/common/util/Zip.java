@@ -17,7 +17,7 @@ public class Zip {
      * @return The two lists zipped together.
      */
     // Based on https://stackoverflow.com/a/31964093
-    public static <A, B> ArrayList<Map.Entry<A, B>> zip(List<A> a, List<B> b) {
+    public static <A, B> List<Map.Entry<A, B>> zip(List<A> a, List<B> b) {
         ArrayList<Map.Entry<A, B>> out = new ArrayList<Map.Entry<A, B>>();
         for (int i = 0; i < Math.min(a.size(), b.size()); i++) {
             out.add(Map.entry(a.get(i), b.get(i)));

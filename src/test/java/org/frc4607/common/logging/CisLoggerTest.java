@@ -1,6 +1,7 @@
 package org.frc4607.common.logging;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -66,8 +67,8 @@ public class CisLoggerTest {
                         return false;
                     }
                 } else {
-                    if (!(TIMESTAMP.equals(pair2.getKey()))
-                            && !(TIMESTAMP.equals(pair2.getValue()))) {
+                    if (!TIMESTAMP.equals(pair2.getKey())
+                            && !TIMESTAMP.equals(pair2.getValue())) {
                         long inputTime = Long.parseLong(pair2.getKey());
                         long targetTime = Long.parseLong(pair2.getValue());
                         if (!((targetTime - 1000000 <= inputTime) 
@@ -109,7 +110,7 @@ public class CisLoggerTest {
     /** Initializes the HAL. */
     @Before
     public void setupHal() {
-        assert HAL.initialize(500, 0);
+        assertTrue("HAL initialization failed.", HAL.initialize(500, 0));
     }
 
     /**
@@ -119,7 +120,8 @@ public class CisLoggerTest {
     public void testReservedCharacters() {
         // https://en.wikipedia.org/wiki/Filename#In_Windows
         String badNames = "/\\?%*:|\"<>.,;= ";
-        for (char badChar : badNames.toCharArray()) {
+        for (int i = 0; i < badNames.length(); i++) {
+            char badChar = badNames.charAt(i);
             String badString = Character.toString(badChar);
             try {
                 new CisLogger(badString); // NOPMD: A clean logger is needed to test properly.
@@ -136,50 +138,18 @@ public class CisLoggerTest {
      * to it.
      */
     @Test
+    @SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
+    // This way of catching errors suggested by Error Prone.
     public void testEmptyLabels() {
-        try {
-            CisLogger log = new CisLogger(TEST);
-            SubLogger sublog = log.createSubLogger(TEST, new String[] {});
-            sublog.logTelemetry(new Object[] {});
-        } catch (IllegalStateException e) {
-            assertEquals("The error message when trying to use telemetry with no labels failed to " 
-                + "match",
-                e.getMessage(), "Loggers created with no labels cannot send telemetry.");
-        }
-    }
-
-    /**
-     * Tests to see if the logger will reject telemetry data if it contains too few objects.
-     */
-    @Test
-    public void testInvalidDataSize_tooFewObjects() {
-        try {
-            CisLogger log = new CisLogger(TEST);
-            SubLogger sublog = log.createSubLogger(TEST, new String[] { "a", "b", "c" });
-            sublog.logTelemetry(new Object[] { "a" });
-        } catch (IllegalArgumentException e) {
-            assertEquals("The error message produced when giving an invalid number of objects "
-                    + "failed to match", e.getMessage(),
-                    "The number of objects passed to Logger.logTelemetry() must be the " 
-                    + "same as the number of labels that were created.");
-        }
-    }
-
-    /**
-     * Tests to see if the logger will reject telemetry data if it contains too many objects.
-     */
-    @Test
-    public void testInvalidDataSize_tooManyObjects() {
-        try {
-            CisLogger log = new CisLogger(TEST);
-            SubLogger sublog = log.createSubLogger(TEST, new String[] { "a", "b", "c" });
-            sublog.logTelemetry(new Object[] { "a", "b", "c", "d", "e" });
-        } catch (IllegalArgumentException e) {
-            assertEquals("The error message produced when giving an invalid number of objects "
-                    + "failed to match", e.getMessage(),
-                    "The number of objects passed to Logger.logTelemetry() must be the "
-                    + "same as the number of labels that were created.");
-        }
+        CisLogger log = new CisLogger(TEST);
+        SubLogger sublog = log.createSubLogger(TEST, new String[] {});
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+            () -> {
+                sublog.logTelemetry(new Object[] {});
+            });
+        assertEquals("The error message when trying to use telemetry with no labels failed to " 
+            + "match.",
+            e.getMessage(), "Loggers created with no labels cannot send telemetry.");
     }
 
     /** Tests the logger's ability to write telemetry. */
@@ -214,7 +184,7 @@ public class CisLoggerTest {
 
         String csvdir = System.getenv(CSVDIR);
         String filename = csvdir + "/" + "0_TelemetryTest.csv";
-        assertTrue("The tables in the telemetry test failed to match",
+        assertTrue("The tables in the telemetry test failed to match.",
             compareTables(CSVFormat.DEFAULT.parse(Files.newBufferedReader(Paths.get(filename))),
                 table));
     }
@@ -222,12 +192,12 @@ public class CisLoggerTest {
     /** Tests the logger's ability to write messages. */
     @Test
     public void testMessages() throws FileNotFoundException, IOException, InterruptedException {
-        String time = Long.toString(RobotController.getFPGATime());
-
         CisLogger log = new CisLogger("1_MessageTest");
         SubLogger sublog = log.createSubLogger("MessageTest", new String[] {});
         sublog.logMessage("Test Message 1");
         sublog.logMessage("Test Message 2");
+
+        String time = Long.toString(RobotController.getFPGATime());
 
         String[] result0 = new String[] { "1", "MessageTest", time, "Test Message 1" };
         String[] result1 = new String[] { "1", "MessageTest", time, "Test Message 2" };
@@ -239,7 +209,7 @@ public class CisLoggerTest {
 
         String csvdir = System.getenv(CSVDIR);
         String filename = csvdir + "/" + "1_MessageTest.csv";
-        assertTrue("The tables in the message test failed to match", compareTables(
+        assertTrue("The tables in the message test failed to match.", compareTables(
             CSVFormat.DEFAULT.parse(Files.newBufferedReader(Paths.get(filename))), table));
     }
 
@@ -275,7 +245,7 @@ public class CisLoggerTest {
 
         String csvdir = System.getenv(CSVDIR);
         String filename = csvdir + "/" + "2_EscapeTest.csv";
-        assertTrue("The tables in the escape test failed to match",
+        assertTrue("The tables in the escape test failed to match.",
             compareTables(CSVFormat.DEFAULT.parse(
                 Files.newBufferedReader(Paths.get(filename))), table));
     }

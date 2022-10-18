@@ -1,26 +1,17 @@
 package org.frc4607.common.swerve;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
+import edu.wpi.first.hal.HAL;
+import edu.wpi.first.wpilibj.simulation.EncoderSim;
 import java.util.NoSuchElementException;
-
-import org.frc4607.common.swerve.SwerveDriverConfig;
-import org.frc4607.common.swerve.SwerveMotorBase;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import edu.wpi.first.hal.HAL;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DigitalSource;
-import edu.wpi.first.wpilibj.DutyCycle;
-import edu.wpi.first.wpilibj.simulation.DIOSim;
-import edu.wpi.first.wpilibj.simulation.DutyCycleSim;
-import edu.wpi.first.wpilibj.simulation.EncoderSim;
-
+/**
+ * Runs tests on {@link org.frc4607.common.swerve.SwerveMotorBase}.
+ */
 public class SwerveMotorBaseTest {
-    private class SwerveMotorBaseInitable extends SwerveMotorBase {
+    private static class SwerveMotorBaseInitable extends SwerveMotorBase {
 
         public SwerveMotorBaseInitable(SwerveDriverConfig config) {
             super(config);
@@ -49,7 +40,7 @@ public class SwerveMotorBaseTest {
     }
 
     SwerveDriverConfig m_config;
-    boolean m_callbackComplete = false;
+    boolean m_callbackComplete;
 
     private void setupSdConfig() {
         SwerveDriverConfig c = new SwerveDriverConfig();
@@ -73,11 +64,11 @@ public class SwerveMotorBaseTest {
         Assert.assertThrows("Encoder should not be created before the object is initialized.",
             NoSuchElementException.class,
             () -> {
-                EncoderSim sim = EncoderSim.createForChannel(m_config.m_quadChannelA);
+                EncoderSim.createForChannel(m_config.m_quadChannelA);
             });
-        SwerveMotorBase motor = new SwerveMotorBaseInitable(m_config);
+        new SwerveMotorBaseInitable(m_config);
         // This will throw an error if the object has not been created.
-        EncoderSim sim = EncoderSim.createForChannel(m_config.m_quadChannelA);
+        EncoderSim.createForChannel(m_config.m_quadChannelA);
     }
 
     @Test
@@ -85,12 +76,12 @@ public class SwerveMotorBaseTest {
         m_config.m_motorType = SwerveDriverConfig.MotorType.DRIVE;
         Assert.assertThrows("Encoder should not be created on drive motors (before init).",
             NoSuchElementException.class, () -> {
-                EncoderSim sim = EncoderSim.createForChannel(m_config.m_quadChannelA);
+                EncoderSim.createForChannel(m_config.m_quadChannelA);
             });
-        SwerveMotorBase motor = new SwerveMotorBaseInitable(m_config);
+        new SwerveMotorBaseInitable(m_config);
         Assert.assertThrows("Encoder should not be created on drive motors (after init).",
             NoSuchElementException.class, () -> {
-                EncoderSim sim = EncoderSim.createForChannel(m_config.m_quadChannelA);
+                EncoderSim.createForChannel(m_config.m_quadChannelA);
             });
     }
 }

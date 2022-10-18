@@ -88,7 +88,6 @@ public class SwerveDrive {
                 return module.isDriveMotorConnected() && module.isTurnMotorConnected();
             });
         List<SwerveDriveModule> validModulesList = validModules.collect(Collectors.toList());
-        System.out.println(validModulesList);
         if (validModulesList.size() > 1 && validModulesList.size() < modules.size()) {
             m_kinematics = reconstructKinematics(validModulesList.stream());
         }

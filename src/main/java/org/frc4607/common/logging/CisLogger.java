@@ -125,6 +125,7 @@ public class CisLogger {
      *                                  if an invalid name is picked for the logger.
      * @deprecated Use {@link edu.wpi.first.wpilibj.DataLogManager} instead.
      */
+    @Deprecated
     public CisLogger(String fileName) {
         // Throw an exception here because this should be a compile time error.
         String badNames = "/\\?%*:|\"<>.,;= ";

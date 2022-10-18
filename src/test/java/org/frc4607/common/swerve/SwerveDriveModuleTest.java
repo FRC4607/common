@@ -4,19 +4,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Random;
-
-import org.frc4607.common.swerve.SwerveDriverConfig.MotorType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import java.util.Random;
+import org.frc4607.common.swerve.SwerveDriverConfig.MotorType;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
+/**
+ * Runs tests on {@link org.frc4607.common.swerve.SwerveDriveModule}.
+ */
 public class SwerveDriveModuleTest {
     private static final double DELTA = 1e-2;
 
@@ -25,7 +26,6 @@ public class SwerveDriveModuleTest {
         public double m_encoderVelocity;
 
         public double m_value;
-        public double m_feedforward;
 
         public boolean m_isConnected;
 
@@ -51,7 +51,6 @@ public class SwerveDriveModuleTest {
         @Override
         public void setTarget(double value, double ffVolts) {
             m_value = value;
-            m_feedforward = ffVolts;
         }
 
         @Override
@@ -112,40 +111,78 @@ public class SwerveDriveModuleTest {
         m_turnMotor.m_quadEncoder.close();
         HAL.shutdown();
     }
-    
+
     @Test
-    public void testProperites() {
+    public void testTurnMotorPosition() {
         double value = m_random.nextDouble();
         m_turnMotor.m_encoderPosition = value;
-        assertEquals(value, m_module.getTurnMotorPosition(), DELTA);
-        value = m_random.nextDouble();
-        m_driveMotor.m_encoderPosition = value;
-        assertEquals(value, m_module.getDriveMotorPosition(), DELTA);
-        value = m_random.nextDouble();
-        m_turnMotor.m_encoderVelocity = value;
-        assertEquals(value, m_module.getTurnMotorVelocity(), DELTA);
-        value = m_random.nextDouble();
-        m_driveMotor.m_encoderVelocity = value;
-        assertEquals(value, m_module.getDriveMotorVelocity(), DELTA);
-        m_driveMotor.m_isConnected = false;
-        assertFalse(m_module.isDriveMotorConnected());
-        m_turnMotor.m_isConnected = false;
-        assertFalse(m_module.isTurnMotorConnected());
-        m_driveMotor.m_isConnected = true;
-        assertTrue(m_module.isDriveMotorConnected());
-        m_turnMotor.m_isConnected = true;
-        assertTrue(m_module.isTurnMotorConnected());
+        assertEquals("Turn motor position value did not match.", value,
+            m_module.getTurnMotorPosition(), DELTA);
     }
 
     @Test
-    public void testSetMethod() {
+    public void testDriveMotorPosition() {
+        double value = m_random.nextDouble();
+        m_driveMotor.m_encoderPosition = value;
+        assertEquals("Drive motor position value did not match.", value,
+            m_module.getDriveMotorPosition(), DELTA);
+    }
+
+    @Test
+    public void testTurnMotorVelocity() {
+        double value = m_random.nextDouble();
+        m_turnMotor.m_encoderVelocity = value;
+        assertEquals("Turn motor velocity value did not match.", value,
+            m_module.getTurnMotorVelocity(), DELTA);
+    }
+
+    @Test
+    public void testDriveMotorVelocity() {
+        double value = m_random.nextDouble();
+        m_driveMotor.m_encoderVelocity = value;
+        assertEquals("Drive motor velocity value did not match.", value,
+            m_module.getDriveMotorVelocity(), DELTA);
+    }
+
+    @Test
+    public void testDriveMotorNotConnected() {
+        m_driveMotor.m_isConnected = false;
+        assertFalse("Drive motor connected unexpectedly.", m_module.isDriveMotorConnected());
+    }
+
+    @Test
+    public void testTurnMotorNotConnected() {
+        m_turnMotor.m_isConnected = false;
+        assertFalse("Turn motor connected unexpectedly.", m_module.isTurnMotorConnected());
+    }
+
+    @Test
+    public void testDriveMotorConnected() {
+        m_driveMotor.m_isConnected = true;
+        assertTrue("Drive motor disconnected unexpectedly.", m_module.isDriveMotorConnected());
+    }
+
+    @Test
+    public void testTurnMotorConnected() {
+        m_turnMotor.m_isConnected = true;
+        assertTrue("Turn motor disconnected unexpectedly.", m_module.isTurnMotorConnected());
+    }
+
+    @Test
+    public void testSetMethodDriveMotor() {
         m_module.set(new SwerveModuleState(1, Rotation2d.fromDegrees(90)));
-        assertEquals(1.0, m_driveMotor.m_value, DELTA);
-        assertEquals(90, m_turnMotor.m_value, DELTA);
+        assertEquals("Drive motor velocity unexpected.", 1.0, m_driveMotor.m_value, DELTA);
+    }
+
+    @Test
+    public void testSetMethodTurnMotor() {
+        m_module.set(new SwerveModuleState(1, Rotation2d.fromDegrees(90)));
+        assertEquals("Turn motor position unexpected.", 90, m_turnMotor.m_value, DELTA);
     }
 
     @Test
     public void testModulePosition() {
-        assertEquals(new Translation2d(0.5, 0.5), m_module.getModuleLocation());
+        assertEquals("Module position does not match assigned value.", new Translation2d(0.5, 0.5),
+            m_module.getModuleLocation());
     }
 }

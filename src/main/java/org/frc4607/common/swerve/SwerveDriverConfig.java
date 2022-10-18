@@ -38,27 +38,27 @@ public class SwerveDriverConfig {
     /** The P term of the hardware PID controller of the motor for velocity control.
      Unit will depend on motor type.
      */
-    public double m_kp = 0;
+    public double m_kp;
 
     /** The I term of the hardware PID controller of the motor for velocity control.
      Unit will depend on motor type.
      */
-    public double m_ki = 0;
+    public double m_ki;
 
     /** The D term of the hardware PID controller of the motor for velocity control.
      Unit will depend on motor type.
      */
-    public double m_kd = 0;
+    public double m_kd;
 
     /** The IZone term of the hardware PID controller of the motor for velocity control.
      Unit will depend on motor type.
      */
-    public double m_kiZone = 0;
+    public double m_kiZone;
 
     /** The maximum integral value of the harddware PID controller for velocity control.
      Unit will depend on motor type.
      */
-    public double m_maxI = 0;
+    public double m_maxI;
     
     /** Whether or not to invert the motor. */
     public boolean m_invertMotor;
@@ -82,7 +82,7 @@ public class SwerveDriverConfig {
      if all modules were facing in this direction then applying the same postive voltage to every
      drive motor would cause the robot to move in the positive X direction.
      */
-    public double m_wheelOffset = 0;
+    public double m_wheelOffset;
 
     /** TURNING ONLY: Whether or not to invert the external encoder. */
     public boolean m_turningInvert;

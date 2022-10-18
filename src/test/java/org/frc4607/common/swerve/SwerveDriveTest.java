@@ -1,20 +1,21 @@
 package org.frc4607.common.swerve;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-
-import java.util.Random;
-
-import org.frc4607.common.swerve.SwerveDriverConfig.MotorType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import org.frc4607.common.swerve.SwerveDriverConfig.MotorType;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
+/**
+ * Runs tests on {@link org.frc4607.common.swerve.SwerveDrive}.
+ */
 public class SwerveDriveTest {
     private static final double DELTA = 1e-2;
 
@@ -23,7 +24,6 @@ public class SwerveDriveTest {
         public double m_encoderVelocity;
 
         public double m_value;
-        public double m_feedforward;
 
         public boolean m_isConnected = true;
 
@@ -49,7 +49,6 @@ public class SwerveDriveTest {
         @Override
         public void setTarget(double value, double ffVolts) {
             m_value = value;
-            m_feedforward = ffVolts;
         }
 
         @Override
@@ -111,7 +110,7 @@ public class SwerveDriveTest {
      */
     @Before
     public void setup() {
-        assert HAL.initialize(500, 0);
+        assertTrue("HAL initialization failed.", HAL.initialize(500, 0));
 
         setupDriveConfig();
         m_driveMotorFrontLeft = new TestDriver(m_driveConfig);
@@ -139,6 +138,9 @@ public class SwerveDriveTest {
             m_moduleBackLeft, m_moduleBackRight);
     }
 
+    /**
+     * Resets used resources after each test.
+     */
     @After
     public void teardown() {
         m_turnMotorFrontLeft.m_quadEncoder.close();
@@ -150,10 +152,16 @@ public class SwerveDriveTest {
 
     @Test
     public void testUpdate() {
-        m_swerveDrive.update(new ChassisSpeeds(5, 5, 2 * Math.PI));
+        try {
+            m_swerveDrive.update(new ChassisSpeeds(5, 5, 2 * Math.PI));
+        } catch (Exception e) {
+            fail(e.toString());
+        }
     }
 
     @Test
+    @SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
+    // This test makes a lot more sense with all of the asserts in one place.
     public void testModuleDropping() {
         m_swerveDrive.update(new ChassisSpeeds(5, 5, 2 * Math.PI));
         final double flPreviousVelocity = m_driveMotorFrontLeft.m_value;
