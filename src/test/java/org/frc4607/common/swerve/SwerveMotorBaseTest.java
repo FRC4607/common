@@ -20,7 +20,6 @@ import edu.wpi.first.wpilibj.simulation.DutyCycleSim;
 import edu.wpi.first.wpilibj.simulation.EncoderSim;
 
 public class SwerveMotorBaseTest {
-    private static final double DELTA = 1e-2;
     private class SwerveMotorBaseInitable extends SwerveMotorBase {
 
         public SwerveMotorBaseInitable(SwerveDriverConfig config) {
@@ -47,16 +46,12 @@ public class SwerveMotorBaseTest {
         public boolean isConnected() {
             return false;
         }
-
-        public double getOffset() {
-            return m_offset;
-        }
     }
 
     SwerveDriverConfig m_config;
     boolean m_callbackComplete = false;
 
-    private void setupSDConfig() {
+    private void setupSdConfig() {
         SwerveDriverConfig c = new SwerveDriverConfig();
         c.m_pwmChannel = 0;
         c.m_quadChannelA = 1;
@@ -69,7 +64,7 @@ public class SwerveMotorBaseTest {
     @Before
     public void setup() {
         assert HAL.initialize(500, 0);
-        setupSDConfig();
+        setupSdConfig();
     }
     
     @Test

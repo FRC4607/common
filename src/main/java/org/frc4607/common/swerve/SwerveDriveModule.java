@@ -23,7 +23,8 @@ public class SwerveDriveModule {
      * @param moduleLocation A {@link edu.wpi.first.math.geometry.Translation2d} in the robot
      coordinate frame with units in meters representing the location of the swerve module's wheel's
      turning axis relative to the center of the robot.
-     * @param maxTurnVelocity The maximum turning speed of the module in meters per second.
+     * @param maxTurnVelocity The maximum turning speed of the module in CCW positive degrees
+     per second.
      */
     public SwerveDriveModule(SwerveMotorBase drive, SwerveMotorBase turn, 
         Translation2d moduleLocation, double maxTurnVelocity) {

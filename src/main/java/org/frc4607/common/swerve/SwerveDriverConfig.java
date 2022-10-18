@@ -14,20 +14,20 @@ public class SwerveDriverConfig {
     }
 
     /** The CAN ID of the motor the driver is representing. */
-    public int m_id;
+    public int m_id = -1;
 
     /** The maximum voltage that can be applied to the motor. */
-    public double m_maxVoltage;
+    public double m_maxVoltage = 12;
 
     /** The value to multiply the native position units by to convert them to CCW positive
      degrees in the case of the turning motor, or meters in the case of the drive motor.
      */
-    public double m_positionCoefficient;
+    public double m_positionCoefficient = 1;
 
     /** The value to multiply the native velocity units by to convert them to meters per
      second for the drive motor, and CCW positive degrees per second for the turning motor.
      */
-    public double m_velocityCoefficient;
+    public double m_velocityCoefficient = 1;
 
     /** A feedforward with constants corresponding to the motor. */
     public SimpleMotorFeedforward m_feedforward;
@@ -38,28 +38,28 @@ public class SwerveDriverConfig {
     /** The P term of the hardware PID controller of the motor for velocity control.
      Unit will depend on motor type.
      */
-    public double m_kp;
+    public double m_kp = 0;
 
     /** The I term of the hardware PID controller of the motor for velocity control.
      Unit will depend on motor type.
      */
-    public double m_ki;
+    public double m_ki = 0;
 
     /** The D term of the hardware PID controller of the motor for velocity control.
      Unit will depend on motor type.
      */
-    public double m_kd;
+    public double m_kd = 0;
 
     /** The IZone term of the hardware PID controller of the motor for velocity control.
      Unit will depend on motor type.
      */
-    public double m_kiZone;
+    public double m_kiZone = 0;
 
     /** The maximum integral value of the harddware PID controller for velocity control.
      Unit will depend on motor type.
      */
-    public double m_maxI;
-
+    public double m_maxI = 0;
+    
     /** Whether or not to invert the motor. */
     public boolean m_invertMotor;
 
@@ -70,19 +70,19 @@ public class SwerveDriverConfig {
     public int m_quadChannelB;
 
     /** TURNING ONLY: The PWM channel DIO of the quad encoder for the turning motor. */
-    public int m_pwmChannel;
+    public int m_pwmChannel = -1;
 
     /** TURNING ONLY: The value to multiply the native position units of the external
      encoder by to convert them to CCW positive degrees.
      */
-    public double m_turnPositionCoefficient;
+    public double m_turnPositionCoefficient = 1;
 
     /** TURNING ONLY: The absolute value of the external encoder in CCW positive degrees when
      the wheel of the module is facing towards positve X in the robot coordinate system so that
      if all modules were facing in this direction then applying the same postive voltage to every
      drive motor would cause the robot to move in the positive X direction.
      */
-    public double m_wheelOffset;
+    public double m_wheelOffset = 0;
 
     /** TURNING ONLY: Whether or not to invert the external encoder. */
     public boolean m_turningInvert;
