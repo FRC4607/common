@@ -15,7 +15,7 @@ import org.frc4607.common.util.Zip;
  * information about the state of the swerve drive.
  */
 public class SwerveDrive {
-    private static final Translation2d mCenter = new Translation2d(0, 0);
+    private static final Translation2d m_center = new Translation2d(0, 0);
 
     private final double m_maxWheelVelocity;
 
@@ -67,7 +67,7 @@ public class SwerveDrive {
      * @param speeds The desired chassis speeds.
      */
     public void update(ChassisSpeeds speeds) {
-        update(speeds, mCenter);
+        update(speeds, m_center);
     }
 
     /**
@@ -87,10 +87,12 @@ public class SwerveDrive {
             .filter((module) -> {
                 return module.isDriveMotorConnected() && module.isTurnMotorConnected();
             });
-        if (validModules.count() < modules.size()) {
-            m_kinematics = reconstructKinematics(validModules);
+        List<SwerveDriveModule> validModulesList = validModules.collect(Collectors.toList());
+        System.out.println(validModulesList);
+        if (validModulesList.size() > 1 && validModulesList.size() < modules.size()) {
+            m_kinematics = reconstructKinematics(validModulesList.stream());
         }
-        return validModules.collect(Collectors.toList());
+        return validModulesList;
     }
 
     /**
@@ -106,7 +108,7 @@ public class SwerveDrive {
             .map((module) -> {
                 return module.getModuleLocation();
             })
-            .toArray();
+            .toArray(Translation2d[]::new);
 
         return new SwerveDriveKinematics(positions);
     }

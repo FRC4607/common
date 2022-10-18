@@ -143,4 +143,9 @@ public class SwerveDriveModuleTest {
         assertEquals(1.0, m_driveMotor.m_value, DELTA);
         assertEquals(90, m_turnMotor.m_value, DELTA);
     }
+
+    @Test
+    public void testModulePosition() {
+        assertEquals(new Translation2d(0.5, 0.5), m_module.getModuleLocation());
+    }
 }
