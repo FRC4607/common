@@ -27,7 +27,8 @@ public class SwerveDrive {
      *
      * @param maxWheelVelocity The maximum wheel velocity of the slowest wheel in the swerve drive
      in meters per second.
-     * @param modules A list of {@link org.frc4607.common.swerve.SwerveDriveModule} objects.
+     * @param modules A array of {@link org.frc4607.common.swerve.SwerveDriveModule} objects
+     with one object for each swerve drive module on the robot.
      */
     public SwerveDrive(double maxWheelVelocity, SwerveDriveModule... modules) {
         m_activeModules = List.of(modules);
@@ -79,7 +80,7 @@ public class SwerveDrive {
      {@link org.frc4607.common.swerve.SwerveDriveModule} objects.
      * @return A new list containing only valid
      {@link org.frc4607.common.swerve.SwerveDriveModule} objects. {@code m_kinematics} will also
-     be updated with this list.
+     be updated with this list if there are enough modules.
     */
     private List<SwerveDriveModule> validate(List<SwerveDriveModule> modules) {
         // Based on https://stackoverflow.com/a/14832470

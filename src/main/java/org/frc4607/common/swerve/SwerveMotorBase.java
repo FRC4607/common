@@ -35,19 +35,19 @@ public abstract class SwerveMotorBase {
     }
 
     /**
-     * Gets the CCW positive angle of the extermal encoder in degrees if this is a turning motor
+     * Gets the CCW-positive angle of the extermal encoder in degrees if this is a turning motor
      or gets the distance traveled by the wheel in meters if this is a drive motor.
      *
-     * @return The position of the motor in either CCW positive degrees or meters depending on
+     * @return The position of the motor in either CCW-positive degrees or meters depending on
      motor type.
      */
     public abstract double getEncoderPosition();
 
     /**
-     * Returns the velocity of the motor in CCW positive degrees per second if this is a turning
+     * Returns the velocity of the motor in CCW-positive degrees per second if this is a turning
      motor or in meters per second if it is a drive motor.
      *
-     * @return The position of the motor in either CCW positive degrees per second or meters
+     * @return The position of the motor in either CCW-positive degrees per second or meters
      per second depending on motor type.
      */
     public abstract double getEncoderVelocity();
@@ -56,7 +56,7 @@ public abstract class SwerveMotorBase {
      * Sets the CCW-positive angle of the encoder if this a turning motor or the encoder position in
      meters if this is a drive motor.
      *
-     * @param value The position to set the encoder to in either CCW positive degrees or meters 
+     * @param value The position to set the encoder to in either CCW-positive degrees or meters 
      depending on motor type.
      */
     public abstract void setEncoder(double value);

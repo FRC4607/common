@@ -23,7 +23,7 @@ public class SwerveDriveModule {
      * @param moduleLocation A {@link edu.wpi.first.math.geometry.Translation2d} in the robot
      coordinate frame with units in meters representing the location of the swerve module's wheel's
      turning axis relative to the center of the robot.
-     * @param maxTurnVelocity The maximum turning speed of the module in CCW positive degrees
+     * @param maxTurnVelocity The maximum turning speed of the module in CCW-positive degrees
      per second.
      */
     public SwerveDriveModule(SwerveMotorBase drive, SwerveMotorBase turn, 
@@ -90,18 +90,18 @@ public class SwerveDriveModule {
     }
 
     /**
-     * Gets the position of the drive motor in CCW positive degrees.
+     * Gets the position of the drive motor in CCW-positive degrees.
      *
-     * @return The position of the drive motor in CCW positive degrees.
+     * @return The position of the drive motor in CCW-positive degrees.
      */
     public double getTurnMotorPosition() {
         return m_turnMotor.getEncoderPosition();
     }
 
     /**
-     * Gets the position of the drive motor in CCW positive degrees per second.
+     * Gets the position of the drive motor in CCW-positive degrees per second.
      *
-     * @return The position of the drive motor in CCW positive degrees per second.
+     * @return The position of the drive motor in CCW-positive degrees per second.
      */
     public double getTurnMotorVelocity() {
         return m_turnMotor.getEncoderVelocity();

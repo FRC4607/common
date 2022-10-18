@@ -19,17 +19,19 @@ public class SwerveDriverConfig {
     /** The maximum voltage that can be applied to the motor. */
     public double m_maxVoltage = 12;
 
-    /** The value to multiply the native position units by to convert them to CCW positive
+    /** The value to multiply the native position units by to convert them to CCW-positive
      degrees in the case of the turning motor, or meters in the case of the drive motor.
      */
     public double m_positionCoefficient = 1;
 
     /** The value to multiply the native velocity units by to convert them to meters per
-     second for the drive motor, and CCW positive degrees per second for the turning motor.
+     second for the drive motor, and CCW-positive degrees per second for the turning motor.
      */
     public double m_velocityCoefficient = 1;
 
-    /** A feedforward with constants corresponding to the motor. */
+    /** A feedforward with constants corresponding to the motor. Units should be meters for
+     drive motors and CCW-positive degrees for turning motors.
+     */
     public SimpleMotorFeedforward m_feedforward;
     
     /** The {@link org.frc4607.common.swerve.SwerveDriverConfig.MotorType} of this motor. */
@@ -55,7 +57,7 @@ public class SwerveDriverConfig {
      */
     public double m_kiZone;
 
-    /** The maximum integral value of the harddware PID controller for velocity control.
+    /** The maximum integral value of the hardware PID controller for velocity control.
      Unit will depend on motor type.
      */
     public double m_maxI;
@@ -73,14 +75,13 @@ public class SwerveDriverConfig {
     public int m_pwmChannel = -1;
 
     /** TURNING ONLY: The value to multiply the native position units of the external
-     encoder by to convert them to CCW positive degrees.
+     encoder by to convert them to CCW-positive degrees.
      */
     public double m_turnPositionCoefficient = 1;
 
-    /** TURNING ONLY: The absolute value of the external encoder in CCW positive degrees when
-     the wheel of the module is facing towards positve X in the robot coordinate system so that
-     if all modules were facing in this direction then applying the same postive voltage to every
-     drive motor would cause the robot to move in the positive X direction.
+    /** TURNING ONLY: The absolute value of the external encoder in CCW-positive degrees when
+     the wheel of the module is facing towards positve X so that applying positive voltage to the
+     motor would cause movement in the positive X direction.
      */
     public double m_wheelOffset;
 
