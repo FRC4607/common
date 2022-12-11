@@ -79,9 +79,11 @@ public class SwerveDrive {
          * states.
          */
         SwerveModuleState[] odometryStates =
-            currentStates.toArray(new SwerveModuleState[m_kinematicModuleCount]);
-        for (int i = currentStates.size(); i < odometryStates.length; i++) {
-            odometryStates[i] = new SwerveModuleState(0, new Rotation2d());
+            currentStates.toArray(new SwerveModuleState[m_kinematicModuleCount]); // NOPMD:
+        // Some null elements are needed in some cases.
+        SwerveModuleState zeroState = new SwerveModuleState(0, new Rotation2d());
+        for (int i = currentStates.size(); i < odometryStates.length; i++) { 
+            odometryStates[i] = zeroState;
         }
 
         m_odometry.update(m_gyro.getRotation2d(), odometryStates);
@@ -167,7 +169,6 @@ public class SwerveDrive {
             })
             .toArray(Translation2d[]::new);
 
-        System.out.println("Modules in kinematics constructor: " + positions.length);
         m_kinematicModuleCount = positions.length;
         m_kinematics = new SwerveDriveKinematics(positions);
         // m_odometry is null on first run
