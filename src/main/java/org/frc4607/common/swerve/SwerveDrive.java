@@ -29,6 +29,8 @@ public class SwerveDrive {
     private final Gyro m_gyro;
     private SwerveDriveOdometry m_odometry;
 
+    private int m_kinematicModuleCount;
+
     /**
      * Constructs a new {@code SwerveDrive}.
      *
@@ -40,10 +42,10 @@ public class SwerveDrive {
      with one object for each swerve drive module on the robot.
      */
     public SwerveDrive(double maxWheelVelocity, Gyro gyro, SwerveDriveModule... modules) {
+        m_gyro = gyro;
         m_activeModules = List.of(modules);
         reconstructKinematics(m_activeModules.stream());
         m_maxWheelVelocity = maxWheelVelocity;
-        m_gyro = gyro;
     }
 
     /**
@@ -69,10 +71,20 @@ public class SwerveDrive {
                 Rotation2d.fromDegrees(module.getTurnMotorPosition()));
             module.set(state);
             currentStates.add(module.get());
-            /* 2023 WPILib: odometry/pose estimation requires a SwerveModulePosition (same thing as)
-            SwerveModuleState but it uses position instead of velocity. */
+            /* 2023 WPILib: odometry/pose estimation requires a SwerveModulePosition (same thing as
+            SwerveModuleState but it uses position instead of velocity). */
         });
-        m_odometry.update(m_gyro.getRotation2d(), (SwerveModuleState[]) currentStates.toArray());
+
+        /* If we only have 0 or 1 motors left, fill up the states odometry is expecting with zeroed
+         * states.
+         */
+        SwerveModuleState[] odometryStates =
+            currentStates.toArray(new SwerveModuleState[m_kinematicModuleCount]);
+        for (int i = currentStates.size(); i < odometryStates.length; i++) {
+            odometryStates[i] = new SwerveModuleState(0, new Rotation2d());
+        }
+
+        m_odometry.update(m_gyro.getRotation2d(), odometryStates);
     }
 
     /**
@@ -155,6 +167,8 @@ public class SwerveDrive {
             })
             .toArray(Translation2d[]::new);
 
+        System.out.println("Modules in kinematics constructor: " + positions.length);
+        m_kinematicModuleCount = positions.length;
         m_kinematics = new SwerveDriveKinematics(positions);
         // m_odometry is null on first run
         if (m_odometry != null) {

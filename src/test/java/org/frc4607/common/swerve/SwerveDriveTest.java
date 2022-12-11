@@ -105,12 +105,19 @@ public class SwerveDriveTest {
 
     private SwerveDrive m_swerveDrive;
 
+    private ADXRS450_Gyro m_gyro;
+
     /**
      * Runs before each test to initialize the HAL as well as other variables.
      */
     @Before
     public void setup() {
         assertTrue("HAL initialization failed.", HAL.initialize(500, 0));
+
+        m_gyro = new ADXRS450_Gyro();
+        ADXRS450_GyroSim sim = new ADXRS450_GyroSim(m_gyro);
+        sim.setAngle(0);
+        sim.setRate(0);
 
         setupDriveConfig();
         m_driveMotorFrontLeft = new TestDriver(m_driveConfig);
@@ -134,7 +141,7 @@ public class SwerveDriveTest {
         m_moduleBackRight = new SwerveDriveModule(m_driveMotorBackRight, m_turnMotorBackRight,
             new Translation2d(-0.5, 0.5), 3600);
         
-        m_swerveDrive = new SwerveDrive(10, m_moduleFrontLeft, m_moduleFrontRight,
+        m_swerveDrive = new SwerveDrive(10, m_gyro, m_moduleFrontLeft, m_moduleFrontRight,
             m_moduleBackLeft, m_moduleBackRight);
     }
 
@@ -147,6 +154,7 @@ public class SwerveDriveTest {
         m_turnMotorFrontRight.m_quadEncoder.close();
         m_turnMotorBackLeft.m_quadEncoder.close();
         m_turnMotorBackRight.m_quadEncoder.close();
+        m_gyro.close();
         HAL.shutdown();
     }
 
