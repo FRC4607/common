@@ -214,4 +214,18 @@ public class SwerveDriveTest {
         assertEquals("BL turn motor dropped without causing a kinematics error.",
             blPreviousRotation, m_turnMotorBackLeft.m_value, DELTA);
     }
+
+    @Test
+    public void testFieldOrientedControl() {
+        // Set the gyro to be facing 90 degrees CCW.
+        ADXRS450_GyroSim sim = new ADXRS450_GyroSim(m_gyro);
+        sim.setAngle(-90);
+
+        // Drive toward +X in the field coordinate system
+        m_swerveDrive.updateFieldOriented(new ChassisSpeeds(10, 0, 0));
+
+        // Modules should now face positive X with a -90 degree CCW rotation
+        assertEquals("FL motor not aligned in field-oriented test",
+            -90, m_turnMotorFrontLeft.m_value, DELTA);
+    }
 }
