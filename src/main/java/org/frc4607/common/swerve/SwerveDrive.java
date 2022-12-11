@@ -1,10 +1,14 @@
 package org.frc4607.common.swerve;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,18 +26,24 @@ public class SwerveDrive {
     private List<SwerveDriveModule> m_activeModules;
     private SwerveDriveKinematics m_kinematics;
 
+    private final Gyro m_gyro;
+    private SwerveDriveOdometry m_odometry;
+
     /**
      * Constructs a new {@code SwerveDrive}.
      *
      * @param maxWheelVelocity The maximum wheel velocity of the slowest wheel in the swerve drive
      in meters per second.
+     * @param gyro A class implementing {@link edu.wpi.first.wpilibj.interfaces.Gyro} used
+     to get the heading of the robot.
      * @param modules A array of {@link org.frc4607.common.swerve.SwerveDriveModule} objects
      with one object for each swerve drive module on the robot.
      */
-    public SwerveDrive(double maxWheelVelocity, SwerveDriveModule... modules) {
+    public SwerveDrive(double maxWheelVelocity, Gyro gyro, SwerveDriveModule... modules) {
         m_activeModules = List.of(modules);
-        m_kinematics = reconstructKinematics(m_activeModules.stream());
+        reconstructKinematics(m_activeModules.stream());
         m_maxWheelVelocity = maxWheelVelocity;
+        m_gyro = gyro;
     }
 
     /**
@@ -50,14 +60,19 @@ public class SwerveDrive {
         SwerveModuleState[] states = 
             m_kinematics.toSwerveModuleStates(speeds, centerRotationMeters);
         SwerveDriveKinematics.desaturateWheelSpeeds(states, m_maxWheelVelocity);
-
-        Zip.zip(validModules, List.of(states)).stream().forEach((pair) -> {
+        
+        List<SwerveModuleState> currentStates = new ArrayList<SwerveModuleState>();
+        Zip.zip(validModules, List.of(states)).stream().forEachOrdered((pair) -> {
             SwerveDriveModule module = pair.getKey();
             SwerveModuleState state = pair.getValue();
             state = SwerveModuleState.optimize(state,
                 Rotation2d.fromDegrees(module.getTurnMotorPosition()));
             module.set(state);
+            currentStates.add(module.get());
+            /* 2023 WPILib: odometry/pose estimation requires a SwerveModulePosition (same thing as)
+            SwerveModuleState but it uses position instead of velocity. */
         });
+        m_odometry.update(m_gyro.getRotation2d(), (SwerveModuleState[]) currentStates.toArray());
     }
 
     /**
@@ -69,6 +84,38 @@ public class SwerveDrive {
      */
     public void update(ChassisSpeeds speeds) {
         update(speeds, m_center);
+    }
+
+    /**
+     * Updates the swerve drive modules given a desired
+     {@link edu.wpi.first.math.kinematics.ChassisSpeeds} object in the field coordinate
+     system.
+     *
+     * @param fieldOrientedSpeeds The desired chassis speeds in the field coordinate system.
+     * @param centerRotationMeters A {@link edu.wpi.first.math.geometry.Translation2d} in the robot
+     coordinate frame with units in meters representing the desired center of rotation.
+     */
+    public void updateFieldOriented(ChassisSpeeds fieldOrientedSpeeds,
+        Translation2d centerRotationMeters) {
+        // 2023 WPILib: This can be greatly simplified with the new overload.
+        update(ChassisSpeeds.fromFieldRelativeSpeeds(
+            fieldOrientedSpeeds.vxMetersPerSecond, fieldOrientedSpeeds.vyMetersPerSecond,
+            fieldOrientedSpeeds.omegaRadiansPerSecond, m_gyro.getRotation2d()),
+            centerRotationMeters);
+    }
+
+    /**
+     * Updates the swerve drive modules given a desired
+     {@link edu.wpi.first.math.kinematics.ChassisSpeeds} object in the field coordinate
+     system, assuming the robot's center as the center of rotation.
+     *
+     * @param fieldOrientedSpeeds The desired chassis speeds in the field coordinate system.
+     */
+    public void updateFieldOriented(ChassisSpeeds fieldOrientedSpeeds) {
+        // 2023 WPILib: This can be greatly simplified with the new overload.
+        update(ChassisSpeeds.fromFieldRelativeSpeeds(
+            fieldOrientedSpeeds.vxMetersPerSecond, fieldOrientedSpeeds.vyMetersPerSecond,
+            fieldOrientedSpeeds.omegaRadiansPerSecond, m_gyro.getRotation2d()));
     }
 
     /**
@@ -90,7 +137,7 @@ public class SwerveDrive {
             });
         List<SwerveDriveModule> validModulesList = validModules.collect(Collectors.toList());
         if (validModulesList.size() > 1 && validModulesList.size() < modules.size()) {
-            m_kinematics = reconstructKinematics(validModulesList.stream());
+            reconstructKinematics(validModulesList.stream());
         }
         return validModulesList;
     }
@@ -100,16 +147,45 @@ public class SwerveDrive {
      * stream of valid modules. Designed to be used in {@code validate}.
      *
      * @param modules A stream of valid modules.
-     * @return A new {@link edu.wpi.first.math.kinematics.SwerveDriveKinematics} made of the
-     positions of the modules in the stream.
      */
-    private SwerveDriveKinematics reconstructKinematics(Stream<SwerveDriveModule> modules) {
+    private void reconstructKinematics(Stream<SwerveDriveModule> modules) {
         Translation2d[] positions = (Translation2d[]) modules
             .map((module) -> {
                 return module.getModuleLocation();
             })
             .toArray(Translation2d[]::new);
 
-        return new SwerveDriveKinematics(positions);
+        m_kinematics = new SwerveDriveKinematics(positions);
+        // m_odometry is null on first run
+        if (m_odometry != null) {
+            m_odometry = new SwerveDriveOdometry(m_kinematics, m_gyro.getRotation2d(),
+                m_odometry.getPoseMeters());
+        } else {
+            m_odometry = new SwerveDriveOdometry(m_kinematics, m_gyro.getRotation2d());
+        }
+    }
+
+    // Getters and setters for gyro and odometry
+
+    public Rotation2d getRotation2d() {
+        return m_gyro.getRotation2d();
+    }
+
+    public void resetGyro() {
+        m_gyro.reset();
+        m_odometry.resetPosition(m_odometry.getPoseMeters(), m_gyro.getRotation2d());
+    }
+
+    public void calibrateGyro() {
+        m_gyro.calibrate();
+        m_odometry.resetPosition(m_odometry.getPoseMeters(), m_gyro.getRotation2d());
+    }
+
+    public Pose2d getPose2d() {
+        return m_odometry.getPoseMeters();
+    }
+
+    public void resetPosition(Pose2d pose) {
+        m_odometry.resetPosition(pose, m_gyro.getRotation2d());
     }
 }

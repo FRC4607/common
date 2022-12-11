@@ -1,5 +1,6 @@
 package org.frc4607.common.swerve;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -56,7 +57,7 @@ public class SwerveDriveModule {
 
         TrapezoidProfile.State targetTurn =
             new TrapezoidProfile.State(state.angle.getDegrees(), 0);
-        TrapezoidProfile profile = new TrapezoidProfile(m_turnConstraints, currentTurn, targetTurn);
+        TrapezoidProfile profile = new TrapezoidProfile(m_turnConstraints, targetTurn, currentTurn);
         TrapezoidProfile.State next = profile.calculate(0.001);
 
         double turnFeedforward =
@@ -71,6 +72,17 @@ public class SwerveDriveModule {
         m_driveMotor.setTarget(state.speedMetersPerSecond, driveFeedforward);
     }
 
+    /**
+     * Returns the current state of the module. This is based on the actual module speeds, and may
+     not equal what is passed in to {@code set}.
+     *
+     * @return The current state of the swerve module.
+     */
+    public SwerveModuleState get() {
+        return new SwerveModuleState(getDriveMotorVelocity(),
+            Rotation2d.fromDegrees(getTurnMotorPosition()));
+    }
+    
     /**
      * Gets the position of the drive motor in meters.
      *
