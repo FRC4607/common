@@ -31,6 +31,8 @@ public class SwerveDrive {
 
     private int m_kinematicModuleCount;
 
+    private final SwerveDriveModule[] m_originalModules;
+
     /**
      * Constructs a new {@code SwerveDrive}.
      *
@@ -42,6 +44,7 @@ public class SwerveDrive {
      with one object for each swerve drive module on the robot.
      */
     public SwerveDrive(double maxWheelVelocity, Gyro gyro, SwerveDriveModule... modules) {
+        m_originalModules = modules;
         m_gyro = gyro;
         m_activeModules = List.of(modules);
         reconstructKinematics(m_activeModules.stream());
@@ -70,7 +73,7 @@ public class SwerveDrive {
             state = SwerveModuleState.optimize(state,
                 Rotation2d.fromDegrees(module.getTurnMotorPosition()));
             module.set(state);
-            currentStates.add(module.get());
+            currentStates.add(module.getCurrentState());
             /* 2023 WPILib: odometry/pose estimation requires a SwerveModulePosition (same thing as
             SwerveModuleState but it uses position instead of velocity). */
         });
@@ -80,8 +83,8 @@ public class SwerveDrive {
          */
         SwerveModuleState[] odometryStates =
             currentStates.toArray(new SwerveModuleState[m_kinematicModuleCount]); // NOPMD:
-        // Some null elements are needed in some cases.
-        SwerveModuleState zeroState = new SwerveModuleState(0, new Rotation2d());
+        // Null elements are needed in some cases.
+        SwerveModuleState zeroState = new SwerveModuleState();
         for (int i = currentStates.size(); i < odometryStates.length; i++) { 
             odometryStates[i] = zeroState;
         }
@@ -178,6 +181,20 @@ public class SwerveDrive {
         } else {
             m_odometry = new SwerveDriveOdometry(m_kinematics, m_gyro.getRotation2d());
         }
+    }
+
+    /**
+     * Gets the current state of one of the {@link org.frc4607.common.swerve.SwerveDriveModule}
+     that were passed into the constructor of this object. Note that modules aren't updated
+     with new target states after they are dropped.
+
+     * @param index The zero-based index of the desired module based on the order it was passed
+     into the constructor of this object.
+     * @return A {@link org.frc4607.common.swerve.SwerveDriveModule.ModuleData} object
+     made up of data from the selected module.
+     */
+    public SwerveDriveModule.ModuleData getModuleData(int index) {
+        return m_originalModules[index].getModuleData();
     }
 
     // Getters and setters for gyro and odometry

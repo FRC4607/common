@@ -1,6 +1,7 @@
 package org.frc4607.common.swerve;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -199,7 +200,6 @@ public class SwerveDriveTest {
         final double blPreviousVelocity = m_driveMotorBackLeft.m_value;
         final double blPreviousRotation = m_turnMotorBackLeft.m_value;
         m_turnMotorBackLeft.m_isConnected = false;
-        m_turnMotorBackLeft.m_isConnected = false;
         m_swerveDrive.update(new ChassisSpeeds(10, -3, -.2));
         assertEquals("FL drive motor velocity updated after BR turn motor disconnect.",
             flPreviousVelocity, m_driveMotorFrontLeft.m_value, DELTA);
@@ -225,7 +225,17 @@ public class SwerveDriveTest {
         m_swerveDrive.updateFieldOriented(new ChassisSpeeds(10, 0, 0));
 
         // Modules should now face positive X with a -90 degree CCW rotation
-        assertEquals("FL motor not aligned in field-oriented test",
+        assertEquals("FL motor not aligned in field-oriented test.",
             -90, m_turnMotorFrontLeft.m_value, DELTA);
+    }
+
+    @Test
+    public void testGetModuleData() {
+        // Disconnect a module and update the modules list
+        m_turnMotorBackLeft.m_isConnected = false;
+        m_swerveDrive.update(new ChassisSpeeds(10, 10, 0));
+
+        assertFalse("SwerveDrive produced incorrect data when module data was queried.",
+            m_swerveDrive.getModuleData(2).isTurnMotorConnected());
     }
 }

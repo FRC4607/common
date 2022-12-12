@@ -4,15 +4,95 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 
 /**
  * Represents one swerve drive module on the robot.
  */
 public class SwerveDriveModule {
+    /**
+     * A snapshot of a {@link org.frc4607.common.swerve.SwerveDriveModule} at a moment in time.
+     * This exists so that the state of a {@link org.frc4607.common.swerve.SwerveDriveModule}
+     * can be shared without keeping a reference to one in another thread than the thread
+     * running the motors.
+     */
+    public static class ModuleData {
+        private Translation2d m_moduleLocation;
+        private TrapezoidProfile.Constraints m_turnConstraints;
+        private SwerveModuleState m_currentState;
+        private SwerveModuleState m_targetState;
+        private double m_currentTurnMotorPosition;
+        private double m_currentTurnMotorVelocity;
+        private boolean m_isTurnMotorConnected;
+        private double m_currentDriveMotorPosition;
+        private double m_currentDriveMotorVelocity;
+        private boolean m_isDriveMotorConnected;
+
+        private ModuleData(Translation2d moduleLocation, Constraints turnConstraints,
+                SwerveModuleState currentState, SwerveModuleState targetState, 
+                double currentTurnMotorPosition, double currentTurnMotorVelocity,
+                boolean isTurnMotorConnected, double currentDriveMotorPosition,
+                double currentDriveMotorVelocity, boolean isDriveMotorConnected) {
+            this.m_moduleLocation = moduleLocation;
+            this.m_turnConstraints = turnConstraints;
+            this.m_currentState = currentState;
+            this.m_targetState = targetState;
+            this.m_currentTurnMotorPosition = currentTurnMotorPosition;
+            this.m_currentTurnMotorVelocity = currentTurnMotorVelocity;
+            this.m_isTurnMotorConnected = isTurnMotorConnected;
+            this.m_currentDriveMotorPosition = currentDriveMotorPosition;
+            this.m_currentDriveMotorVelocity = currentDriveMotorVelocity;
+            this.m_isDriveMotorConnected = isDriveMotorConnected;
+        }
+
+        public Translation2d getModuleLocation() {
+            return m_moduleLocation;
+        }
+
+        public TrapezoidProfile.Constraints getTurnConstraints() {
+            return m_turnConstraints;
+        }
+
+        public SwerveModuleState getCurrentState() {
+            return m_currentState;
+        }
+
+        public SwerveModuleState getTargetState() {
+            return m_targetState;
+        }
+
+        public double getCurrentTurnMotorPosition() {
+            return m_currentTurnMotorPosition;
+        }
+
+        public double getCurrentTurnMotorVelocity() {
+            return m_currentTurnMotorVelocity;
+        }
+
+        public boolean isTurnMotorConnected() {
+            return m_isTurnMotorConnected;
+        }
+
+        public double getCurrentDriveMotorPosition() {
+            return m_currentDriveMotorPosition;
+        }
+
+        public double getCurrentDriveMotorVelocity() {
+            return m_currentDriveMotorVelocity;
+        }
+
+        public boolean isDriveMotorConnected() {
+            return m_isDriveMotorConnected;
+        }
+
+    }
+
     private final SwerveMotorBase m_driveMotor;
     private final SwerveMotorBase m_turnMotor;
     private final Translation2d m_moduleLocation;
     private final TrapezoidProfile.Constraints m_turnConstraints;
+
+    private SwerveModuleState m_targetState;
 
     /**
      * Constructs a new instance of {@code SwerveDriveModule}.
@@ -70,17 +150,30 @@ public class SwerveDriveModule {
 
         m_turnMotor.setTarget(state.angle.getDegrees(), turnFeedforward);
         m_driveMotor.setTarget(state.speedMetersPerSecond, driveFeedforward);
+
+        m_targetState = state;
     }
 
     /**
-     * Returns the current state of the module. This is based on the actual module speeds, and may
-     not equal what is passed in to {@code set}.
+     * Returns the current state of the module. This is based on the actual module, and may
+     not equal what was passed in to {@code set}. Use {@code getTargetState} to get that
+     information.
      *
      * @return The current state of the swerve module.
      */
-    public SwerveModuleState get() {
+    public SwerveModuleState getCurrentState() {
         return new SwerveModuleState(getDriveMotorVelocity(),
             Rotation2d.fromDegrees(getTurnMotorPosition()));
+    }
+
+    /**
+     * Returns the target state of the module. This is based on the last call to {@code set}, and is
+     not indicative of what the motors are. Use {@code getCurrentState} to get that information.
+     *
+     * @return The target state of the swerve module.
+     */
+    public SwerveModuleState getTargetState() {
+        return m_targetState;
     }
     
     /**
@@ -147,4 +240,18 @@ public class SwerveDriveModule {
     public boolean isTurnMotorConnected() {
         return m_turnMotor.isConnected();
     }
+
+    /**
+     * Returns information about this module in a read-only form.
+
+     * @return An {@link org.frc4607.common.swerve.SwerveDriveModule.ModuleData}
+     made up of data from this module.
+     */
+    public ModuleData getModuleData() {
+        return new ModuleData(m_moduleLocation, m_turnConstraints,
+            getCurrentState(), getTargetState(), getTurnMotorPosition(),
+            getTurnMotorVelocity(), isTurnMotorConnected(),
+            getDriveMotorPosition(), getDriveMotorVelocity(),
+            isTurnMotorConnected());
+    } 
 }
